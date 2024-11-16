@@ -45,24 +45,30 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
   useEffect(() => {
     socket.emit("setup", loggedUser);
-    socket.on("connected", () =>
-      console.log("connected into the loading area")
-    );
+    socket.emit("join-chat", chat?._id);
 
-    socket.on("typing", (data) => {
-      console.log("Typing event received:", data);
+    socket.on("connected", () => {
+      console.log("connected into the loading area");
+    });
+
+    socket.on("isTyping", (chatId) => {
+      console.log("Typing event received:", chatId);
       setIsTyping(true);
     });
-    
 
-    socket.on("stop-typing", () => setIsTyping(false));
+    socket.on("isStop-typing", () => {
+      console.log("stop typing");
+      setIsTyping(false);
+
+
+    });
   }, []);
 
   useEffect(() => {
     if (messageInput) {
-      if (!typing) {  
+      if (!typing) {
         setTyping(true);
-         socket.emit("typing", chat?._id);
+        socket.emit("typing", chat?._id);
       }
 
       const lastTypingTime = new Date().getTime();
@@ -89,10 +95,8 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
   //Debugging Purpose UseEffect
   useEffect(() => {
-    console.log(typing);
     console.log(messageInput);
   }, [typing]);
-
 
   return (
     <Box
@@ -106,10 +110,6 @@ const ChatFooter = ({ chat, setIsTyping }) => {
       }}
     >
       <TextField
-
-        onKeyDown={()=> handleTyping()}
-        onKeyUp={()=> socket.emit("typing", chat?._id)}
-
         variant="outlined"
         placeholder="Type a message..."
         fullWidth

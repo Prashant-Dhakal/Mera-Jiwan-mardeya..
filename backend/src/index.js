@@ -21,23 +21,33 @@ connectDB().then(() => {
     },
   });
 
-  // Socket.io event listeners
   io.on("connection", (socket) => {
     
     socket.on("setup", (userData) => {
+      console.log("hope usedata",userData);
+      
       socket.join(userData?.id); // Join the user's private room
       socket.emit("connected");
     });
 
     socket.on("join-chat", (room) => {
       socket.join(room);
-      // console.log("User joined room " + room);
+      console.log("User joined room " + room);
+    });
+
+    socket.on("typing", (chatId) => {
+      // console.log("fff footersocket received", chatId);
+      socket.to(chatId).emit("isTyping", chatId);
+    });
+  
+    socket.on("stop-typing", (chatId) => {
+      // console.log("footersocket received" , chatId);
+      socket.to(chatId).emit("isStop-typing"); 
     });
 
     socket.on("send-message", (newMessageReceived) => {
-      const { content, sender, chatId } = newMessageReceived; // Destructure the data for clarity
+      const { content, sender, chatId } = newMessageReceived;
 
-      // Ensure the chatId exists
       if (!chatId) return console.log("chatId is missing");
 
       socket.to(chatId).emit("message-received", {
@@ -46,17 +56,7 @@ connectDB().then(() => {
         chatId,
       });
 
-      // console.log(`Message sent to room: ${chatId}, sender: ${sender}`);
-    });
-
-    socket.on("typing", (chatId) => {
-      // console.log("fff", chatId);
-      socket.to(chatId).emit("typing", chatId);
-    });
-  
-    socket.on("stop-typing", (chatId) => {
-      // console.log(chatId);
-      socket.to(chatId).emit("stop-typing"); 
+      console.log(`Message sent to room: ${chatId}, sender: ${sender}`);
     });
     
   });

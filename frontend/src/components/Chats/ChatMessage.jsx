@@ -2,9 +2,6 @@ import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendMessage, resetMessages } from "../../store/MessageSlice.js";
 import { getAllMessages } from "../../services/everyServices.js";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:3000");
 
 const ChatMessages = ({ chat }) => {
   const dispatch = useDispatch();
@@ -37,30 +34,6 @@ const ChatMessages = ({ chat }) => {
       fetchMessages();
     }
   }, [chat?._id]);
-
-  // Listen for real-time messages with the single socket instance
-  useEffect(() => {
-    if (chat?._id) {
-      const handleMessageReceived = (newMessage) => {
-        console.log(newMessage.chatId, chat._id);
-        
-        if (newMessage.chatId === chat?._id) {
-          dispatch(
-            sendMessage({
-              content: newMessage.content,
-              senderId: newMessage.sender,
-            })
-          );
-        }
-      };
-
-      socket.on("message-received", handleMessageReceived);
-
-      return () => {
-        socket.off("message-received", handleMessageReceived); // Clean up listener when chat changes
-      };
-    }
-  }, [chat?._id, dispatch]);
 
   return (
     <div className="flex-1 p-4 overflow-y-auto">

@@ -27,10 +27,10 @@ const ChatPage = () => {
       socket.emit("setup", loggedUser);
       socket.on("connected", () => setSocketConnected(true));
 
-      // return () => {
-      //   socket.disconnect();
-      //   socket.off();
-      // };
+      return () => {
+        socket.disconnect();
+        socket.off();
+      };
     }
   }, [loggedUser, dispatch]);
 
