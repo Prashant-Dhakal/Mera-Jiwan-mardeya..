@@ -56,7 +56,7 @@ const ChatSidebar = ({ onSelectChat }) => {
                 {/* User Details */}
                 <div className="flex-1">
                   <p className="font-medium text-purple-900">
-                    {otherUser?.username || "Unknown User"}
+                    {chat?.isGroupChat == true ? chat?.chatName : otherUser.username}
                   </p>
                   <p className="text-sm text-gray-600 truncate">
                     Hello Jane!

@@ -8,7 +8,9 @@ const SearchResult = ({ users, inputValueFetchedUser, setUser }) => {
   const dispatch = useDispatch();
 
   const selectedUser = (user)=> {
-    setUser(user)
+    if(user){
+      setUser((prev)=> [...prev, user])
+    }
     inputValueFetchedUser(user.username);
     
     // dispatch(userList(user));

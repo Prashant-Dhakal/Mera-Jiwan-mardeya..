@@ -20,7 +20,7 @@ const ChatHeader = ({ chat }) => {
         {/* Chat Name */}
         <div>
           <p className="font-bold text-gray-900 text-lg">
-            {otherUser?.username || "Unknown User"}
+            {chat?.isGroupChat == true ? chat?.chatName : otherUser.username}
           </p>
           <p className="text-sm text-gray-500">Active now</p> {/* Optional Status */}
         </div>

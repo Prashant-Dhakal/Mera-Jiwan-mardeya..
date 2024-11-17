@@ -25,6 +25,8 @@ const MessageSlice = createSlice({
       if (state.userLists.length === 0) {
         state.userLists = [...action.payload];
       } else {
+        console.log(action.payload);
+        
         action.payload.forEach((newUser) => {
           const result = state.userLists.find(
             (user) => user?._id === newUser?._id

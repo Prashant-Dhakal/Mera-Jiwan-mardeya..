@@ -86,6 +86,7 @@ const loggingUser = async (email, password) => {
   const loggedUser = await User.findById(user?._id).select(
     "-password -refreshToken"
   );
+  
 
   return { loggedUser, accessToken, refreshToken };
 };
@@ -246,6 +247,7 @@ const getUsers = asyncHandler(async (req, res, next) => {
 // Create Chat
 const createChat = asyncHandler(async (req, res, _) => {
   const { isGroupChat, chatName, users } = req.body;
+  console.log("usersnotcoming",users);
   
   if (!users || users.length < 1) {
     throw new ApiError(400, "Users are required to create a chat");
@@ -256,7 +258,7 @@ const createChat = asyncHandler(async (req, res, _) => {
     const existingChat = await Chat.findOne({
       isGroupChat: false,
       users: { $all: [req.user._id, users] },
-    })
+    })    
 
     if (existingChat) {
       return res.json(
@@ -266,7 +268,6 @@ const createChat = asyncHandler(async (req, res, _) => {
 
     const newChat = await Chat.create({
       isGroupChat,
-      chatName: chatName || "One on One Chat",
       users: [req.user?._id, users],
     })
 

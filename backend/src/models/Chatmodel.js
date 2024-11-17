@@ -10,7 +10,9 @@ const chatSchema = new mongoose.Schema(
     chatName: {
       type: String,
       trim: true,
-      required: true,
+      required: function(){
+        return this.isGroupChat
+      },
     },
     users: [
       {

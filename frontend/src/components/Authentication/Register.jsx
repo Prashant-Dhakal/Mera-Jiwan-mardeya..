@@ -23,7 +23,7 @@ const Register = () => {
         dispatch(login(data));
       }
 
-      navigate("/chat");
+      navigate("/");
     } catch (error) {
       setError(error.response?.data?.message || error.message);
     }
