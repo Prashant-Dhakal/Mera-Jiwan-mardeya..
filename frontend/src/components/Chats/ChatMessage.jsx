@@ -36,37 +36,46 @@ const ChatMessages = ({ chat }) => {
   }, [chat?._id]);
 
   return (
-    <div className="flex-1 p-4 overflow-y-auto">
-      <div className="flex justify-end">
-        <div className="flex-1 p-5 overflow-y-auto">
-          {messages.length > 0 ? (
-            messages.map((msg, index) => (
+    <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
+      <div className="flex flex-col space-y-4">
+        {messages.length > 0 ? (
+          messages.map((msg, index) => (
+            <div
+              key={index}
+              className={`flex ${
+                msg.senderId === loggedUserId ? "justify-end" : "justify-start"
+              }`}
+            >
               <div
-                key={index}
-                className={`flex mb-4 ${
+                className={`relative max-w-xs md:max-w-md p-4 rounded-2xl shadow-lg ${
                   msg.senderId === loggedUserId
-                    ? "justify-end"
-                    : "justify-start"
+                    ? "bg-gradient-to-r from-blue-100 to-blue-50 text-[#4169E1]"
+                    : "bg-gradient-to-r from-gray-200 to-gray-100 text-[#19222d]"
                 }`}
               >
-                <div
-                  className={`text py-2 px-4 rounded-lg ${
+                {/* Message Content */}
+                <p className="text-base leading-6">{msg.content}</p>
+  
+                {/* Timestamp */}
+                <span
+                  className={`absolute text-xs ${
                     msg.senderId === loggedUserId
-                      ? "bg-teal-100 text-teal-800 rounded-br-none"
-                      : "bg-gray-100 text-gray-800 rounded-bl-none"
+                      ? "text-blue-500 right-3 -bottom-5"
+                      : "text-gray-500 left-3 -bottom-5"
                   }`}
                 >
-                  {msg.content}
-                </div>
+                  {msg.timestamp}
+                </span>
               </div>
-            ))
-          ) : (
-            <p>No messages yet!</p>
-          )}
-        </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-600 text-center italic">No messages yet!</p>
+        )}
       </div>
     </div>
   );
+  
 };
 
 export default ChatMessages;

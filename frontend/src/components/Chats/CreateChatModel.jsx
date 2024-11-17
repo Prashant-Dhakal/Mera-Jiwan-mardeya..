@@ -79,48 +79,55 @@ const ChatModal = ({ isOpen, onClose, onNewChat}) => {
 
   return isOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-6">Create New Chat</h2>
-
+      <div className="bg-white p-8 rounded-lg w-full max-w-lg shadow-xl transition-all duration-300 ease-in-out">
+        <h2 className="text-2xl font-semibold mb-6 text-center text-violet-700">Create New Chat</h2>
+  
         <div className="mb-6">
-          <label>
+          <label className="flex items-center cursor-pointer">
             <input
               type="checkbox"
               name="chatType"
               onChange={handleChatTypeChange}
               checked={isGroupChat}
+              className="mr-2"
             />
-            <span className="ml-2">Group Chat</span>
+            <span className="text-gray-700">Group Chat</span>
           </label>
         </div>
-
+  
         {isGroupChat ? (
           <>
             <TextField
+              autoComplete="off"
               label="Group Name"
               fullWidth
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
               sx={{ marginBottom: 2 }}
+              inputProps={{ className: 'text-gray-700' }}
             />
             <TextField
+             autoComplete="off"
               label="Participants"
               fullWidth
               value={participants}
               onChange={(e) => setParticipants(e.target.value)}
               placeholder="Enter participants"
               sx={{ marginBottom: 2 }}
+              inputProps={{ className: 'text-gray-700' }}
             />
           </>
         ) : (
           <>
             <TextField
+              autoComplete="off"
               label="Search User"
               fullWidth
               value={input}
               onChange={(e) => handleChange(e.target.value)}
               placeholder="Search for a user"
               sx={{ marginBottom: 2 }}
+              // inputProps={{ className: 'text-gray-700' }}
             />
             <SearchResult
               users={resultedUser}
@@ -129,10 +136,10 @@ const ChatModal = ({ isOpen, onClose, onNewChat}) => {
             />
           </>
         )}
-
-        <div className="flex justify-end gap-4">
+  
+        <div className="flex justify-end gap-4 mt-6">
           <button
-            className="px-4 py-2 text-gray-500 bg-gray-100 rounded hover:bg-gray-200"
+            className="px-6 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-300"
             onClick={() => {
               clearInput();
               onClose();
@@ -141,7 +148,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat}) => {
             Cancel
           </button>
           <button
-            className="px-4 py-2 text-white bg-violet-600 rounded hover:bg-violet-500"
+            className="px-6 py-2 text-white bg-violet-600 rounded-lg hover:bg-violet-500 transition-colors duration-300"
             onClick={handleCreate}
           >
             Create
@@ -149,7 +156,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat}) => {
         </div>
       </div>
     </div>
-  ) : null;
+  ) : null;  
 };
 
 export default ChatModal;

@@ -15,20 +15,22 @@ const AddChatButton = ({onNewChat}) => {
   
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
       <button
         onClick={openModal}
-        className="px-4 py-2 mb-4 text-white bg-violet-600 rounded hover:bg-violet-500"
+        className="px-6 py-3 mb-6 text-white bg-violet-600 rounded-lg shadow-md hover:bg-violet-500 focus:outline-none transition-all duration-300 transform hover:scale-105"
       >
         Add Chat +
       </button>
       <ChatModal
-       onNewChat={onNewChat}
-        isOpen={isModalOpen} 
-        onClose={closeModal} 
+        onNewChat={onNewChat}
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        className="transition-transform duration-300 ease-in-out transform scale-95 hover:scale-100"
       />
     </div>
   );
+  
 };
 
 export default AddChatButton;

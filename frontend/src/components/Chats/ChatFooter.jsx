@@ -47,10 +47,6 @@ const ChatFooter = ({ chat, setIsTyping }) => {
     socket.emit("setup", loggedUser);
     socket.emit("join-chat", chat?._id);
 
-    socket.on("connected", () => {
-      console.log("connected into the loading area");
-    });
-
     socket.on("isTyping", (chatId) => {
       console.log("Typing event received:", chatId);
       setIsTyping(true);
@@ -80,6 +76,8 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
         if (timeDiff >= timerLength && typing) {
           socket.emit("stop-typing", chat?._id);
+          console.log('here stop typing');
+          
           setTyping(false);
         }
       }, timerLength);
@@ -106,38 +104,51 @@ const ChatFooter = ({ chat, setIsTyping }) => {
         bgcolor: "white",
         p: 2,
         display: "flex",
+        alignItems: "center",
         borderTop: "1px solid #E0E0E0",
+        boxShadow: "0px -2px 5px rgba(0, 0, 0, 0.1)", // subtle shadow for separation
       }}
     >
+      {/* Text Input */}
       <TextField
         variant="outlined"
-        placeholder="Type a message..."
+        placeholder="Type your message here..."
         fullWidth
         size="small"
         autoComplete="off"
-        {...register("content", {
-          required: true,
-        })}
+        {...register("content", { required: true })}
         sx={{
           flexGrow: 1,
+          borderRadius: "10px",
+          "& .MuiOutlinedInput-root": {
+            borderRadius: "10px",
+          },
           marginRight: 2,
         }}
       />
+  
+      {/* Send Button */}
       <Button
         variant="contained"
         color="primary"
         type="submit"
         sx={{
+          px: 3,
+          height: "40px",
           bgcolor: "#FF8C00",
+          textTransform: "capitalize",
+          fontWeight: "bold",
           "&:hover": {
             bgcolor: "#FF6B6B",
           },
+          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
         }}
       >
         Send
       </Button>
     </Box>
   );
+  
 };
 
 export default ChatFooter;
