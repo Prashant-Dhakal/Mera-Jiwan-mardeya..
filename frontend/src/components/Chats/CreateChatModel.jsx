@@ -69,7 +69,8 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
         const createGroupChats = await createChat(groupChat);
         if (createGroupChats) {
           console.log(createGroupChats.data);
-          dispatch(userList([createGroupChats.data]))
+          dispatch(userList(createGroupChats.data));
+          setUser([])
         }
       } catch (error) {
         console.error("Error creating chat:", error);

@@ -15,7 +15,7 @@ const ChatSidebar = ({ onSelectChat }) => {
     const loggedUserChats = await getChats();
     if (loggedUserChats && loggedUserChats.length > 0) {
       console.log(loggedUserChats);
-      
+
       dispatch(userList(loggedUserChats));
     }
   };
@@ -34,14 +34,14 @@ const ChatSidebar = ({ onSelectChat }) => {
         <SearchBar />
         <AddChatButton onNewChat={fetchChats} />
       </div>
-  
+
       {/* Chat List */}
       {chats.length > 0 ? (
         chats.map((chat) => {
           const otherUser = chat.users.find(
             (user) => user._id !== loggedUser.id
           );
-  
+
           return (
             <Link to={`/chat/${chat._id}`} key={chat._id}>
               <div
@@ -52,15 +52,15 @@ const ChatSidebar = ({ onSelectChat }) => {
                 <div className="w-12 h-12 bg-purple-300 rounded-full flex items-center justify-center text-white font-bold">
                   {otherUser?.username?.charAt(0).toUpperCase() || "U"}
                 </div>
-  
+
                 {/* User Details */}
                 <div className="flex-1">
                   <p className="font-medium text-purple-900">
-                    {chat?.isGroupChat == true ? chat?.chatName : otherUser.username}
+                    {chat?.isGroupChat == true
+                      ? chat?.chatName
+                      : otherUser.username}
                   </p>
-                  <p className="text-sm text-gray-600 truncate">
-                    Hello Jane!
-                  </p>
+                  <p className="text-sm text-gray-600 truncate">Hello Jane!</p>
                 </div>
               </div>
             </Link>
@@ -70,7 +70,7 @@ const ChatSidebar = ({ onSelectChat }) => {
         <h2 className="text-center text-gray-500">No chats available</h2>
       )}
     </div>
-  );  
+  );
 };
 
 export default ChatSidebar;

@@ -14,7 +14,7 @@ const MessageSlice = createSlice({
       const message = {
         id: nanoid(),
         content: action.payload.content,
-        senderId: action.payload.senderId
+        sender: action.payload.sender
       };
 
       state.messages.push(message);

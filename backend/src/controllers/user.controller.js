@@ -283,9 +283,6 @@ const createChat = asyncHandler(async (req, res, _) => {
     .populate("latestMessage", "content")
     .sort({ updatedAt: -1 });
 
-    console.log(createdChat);
-    
-
     return res.json(new ApiResponse(201, createdChat, "New chat created"));
   }
 
@@ -304,7 +301,12 @@ const createChat = asyncHandler(async (req, res, _) => {
       throw new ApiError(400, "GroupChat not creating due to some error please wait.........")
     }
 
-    return res.json(new ApiResponse(201, newGroupChat, "New group chat created"));
+    const createdGroupChat = await Chat.find(newGroupChat?._id)
+    .populate("users", "-password -refreshToken")
+    .populate("latestMessage", "content")
+    .sort({ updatedAt: -1 });
+
+    return res.json(new ApiResponse(201, createdGroupChat, "New group chat created"));
   }
 });
 
@@ -340,12 +342,10 @@ const createMessage = asyncHandler(async (req, res, next) => {
     // Update the chat's latestMessage field with the newly created message ID
     await Chat.findByIdAndUpdate(chatId, { latestMessage: message._id }, { new: true });
 
-    // Populate message with sender (only username) and chat details
     const fullMessage = await Message.findById(message._id)
       .populate("sender", "username")
       .populate("chat");
 
-    // Return success response with full message details
     return res.json(new ApiResponse(200, fullMessage, "Message sent successfully"));
   } catch (error) {
     return next(new ApiError(500, "Failed to send the message"));
@@ -359,7 +359,7 @@ const getAllMessages = asyncHandler(async (req, res, next) => {
   
 
   const messages = await Message.find({ chat: chatId })
-    // .populate("sender", "username")
+    .populate("sender", "username")
     .populate("chat", "content");
 
   if (!messages || messages.length === 0) {

@@ -28,10 +28,12 @@ const ChatFooter = ({ chat, setIsTyping }) => {
       };
 
       const message = await messageService(messageObject);
+      console.log(message.data.sender);
+      
       if (message) {
         socket.emit("send-message", {
           content: message.data.content,
-          sender: loggedUser?.id,
+          sender: message.data.sender,
           chatId: chat?._id,
         });
 

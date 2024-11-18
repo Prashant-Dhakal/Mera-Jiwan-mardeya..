@@ -52,7 +52,7 @@ connectDB().then(() => {
 
       socket.to(chatId).emit("message-received", {
         content,
-        senderId: sender,
+        sender: sender,
         chatId,
       });
 

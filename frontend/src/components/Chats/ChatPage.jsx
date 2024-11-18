@@ -65,7 +65,7 @@ const ChatPage = () => {
         dispatch(
           sendMessage({
             content: newMessage.content,
-            senderId: newMessage.senderId,
+            sender: newMessage.sender,
           })
         );
       });
