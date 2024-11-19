@@ -1,18 +1,15 @@
 import React, { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import SearchResult from "./SearchResult";
+import CloseIcon from "@mui/icons-material/Close";
+import Chip from "@mui/material/Chip";
 import { useDispatch } from "react-redux";
-import {
-  searchUsers,
-  createChat,
-  getChats,
-} from "../../services/everyServices";
+import { searchUsers, createChat } from "../../services/everyServices";
 import { userList } from "../../store/MessageSlice";
 
 const ChatModal = ({ isOpen, onClose, onNewChat }) => {
   const [isGroupChat, setIsGroupChat] = useState(false);
   const [groupName, setGroupName] = useState("");
-  // const [participants, setParticipants] = useState("");
   const [input, setInput] = useState("");
   const [resultedUser, setResultedUser] = useState([]);
   const [user, setUser] = useState([]);
@@ -20,28 +17,29 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // This can be used for debugging or side effects
-    // console.log(user);
-    console.log(user);
+     console.log(user);
   }, [user]);
 
   const handleChatTypeChange = (e) => {
     setIsGroupChat(e.target.checked);
     clearInput();
+
+    if(e.target.checked == false){
+      setGroupName("")
+    }
   };
 
   const handleChange = (value) => {
     setInput(value);
-    fetchData(value);
+    fetchData(value);    
   };
 
   const clearInput = () => {
     setInput("");
   };
 
-  // Finding User from DataBase
   const fetchData = async (username) => {
-    if (!username) return; // Early exit if username is empty
+    if (!username) return;
 
     try {
       const searchUser = await searchUsers(username);
@@ -49,16 +47,12 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
         setResultedUser(searchUser.data);
       }
     } catch (error) {
-      console.error("Error fetching user data:", error); // Improved error logging
+      console.error("Error fetching user data:", error);
     }
   };
 
-  // Chat Creation
   const handleCreate = async () => {
     if (isGroupChat) {
-      console.log("Group Chat:", groupName);
-      console.log(user);
-
       const groupChat = {
         isGroupChat: true,
         users: user,
@@ -68,26 +62,24 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
       try {
         const createGroupChats = await createChat(groupChat);
         if (createGroupChats) {
-          console.log(createGroupChats.data);
           dispatch(userList(createGroupChats.data));
-          setUser([])
+          setUser([]);
         }
       } catch (error) {
         console.error("Error creating chat:", error);
       }
     } else {
       const extractObjectFromArray = user.length === 1 ? user[0] : user;
-      // console.log(extractObjectFromArray);
-      
+
       const OneonOneChat = {
         isGroupChat: false,
-        users: extractObjectFromArray?._id
+        users: extractObjectFromArray?._id,
       };
+
       try {
         const createChats = await createChat(OneonOneChat);
         if (createChats) {
           onNewChat();
-          console.log(createChats.data);
           dispatch(userList(createChats.data));
         }
       } catch (error) {
@@ -98,9 +90,16 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
     onClose();
   };
 
+  const handleParticipants = (participantId) => {
+    const updatedUser = user.filter(
+      (participant) => participant._id !== participantId
+    );
+    setUser(updatedUser);
+  };
+
   return isOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-8 rounded-lg w-full max-w-lg shadow-xl transition-all duration-300 ease-in-out">
+      <div className="bg-white p-8 rounded-lg w-full max-w-lg shadow-xl">
         <h2 className="text-2xl font-semibold mb-6 text-center text-violet-700">
           Create New Chat
         </h2>
@@ -137,6 +136,26 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
               placeholder="Enter participants"
               sx={{ marginBottom: 2 }}
             />
+
+            {/* Participants Box */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {user.map((participant) => (
+                <Chip
+                  key={participant._id}
+                  label={participant.username}
+                  color="primary"
+                  onDelete={() => handleParticipants(participant._id)}
+                  deleteIcon={<CloseIcon />}
+                  sx={{
+                    backgroundColor: "#EDE7F6",
+                    color: "#5E35B1",
+                    "& .MuiChip-deleteIcon": {
+                      color: "#5E35B1",
+                    },
+                  }}
+                />
+              ))}
+            </div>
 
             <SearchResult
               users={resultedUser}

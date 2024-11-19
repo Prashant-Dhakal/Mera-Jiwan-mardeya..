@@ -229,16 +229,17 @@ const getUsers = asyncHandler(async (req, res, next) => {
     throw new ApiError(404, "Username not provided or invalid");
   }
 
-  console.log(username);
-  
-
   // Find users with the provided username
-  const users = await User.find({ username: new RegExp(`^${username}`, "i") }); // case-insensitive search
+  const users = await User.find({ username: new RegExp(`^${username}`, "i") })
+  .select("-refreshToken -password") // case-insensitive search
 
   // If no users are found, throw an error
   if (users.length === 0) {
     throw new ApiError(400, `No users found with username: ${username}`);
   }
+
+  console.log("users populated", users);
+  
   
   // Return the list of users found
   return res.json(new ApiResponse(200, users, "Users found"));
