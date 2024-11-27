@@ -16,10 +16,6 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-     console.log(user);
-  }, [user]);
-
   const handleChatTypeChange = (e) => {
     setIsGroupChat(e.target.checked);
     clearInput();
@@ -80,6 +76,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
         const createChats = await createChat(OneonOneChat);
         if (createChats) {
           onNewChat();
+          setUser([])
           dispatch(userList(createChats.data));
         }
       } catch (error) {

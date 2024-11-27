@@ -222,33 +222,24 @@ const getUserDetails = asyncHandler(async (req, res, next) => {
 // Search Users
 const getUsers = asyncHandler(async (req, res, next) => {
   const {username} = req.query;
-  console.log("Query Param:", username);
 
-  // Check if username is provided
   if (!username || typeof username !== 'string') {
     throw new ApiError(404, "Username not provided or invalid");
   }
 
-  // Find users with the provided username
   const users = await User.find({ username: new RegExp(`^${username}`, "i") })
-  .select("-refreshToken -password") // case-insensitive search
+  .select("-refreshToken -password")
 
-  // If no users are found, throw an error
   if (users.length === 0) {
     throw new ApiError(400, `No users found with username: ${username}`);
   }
 
-  console.log("users populated", users);
-  
-  
-  // Return the list of users found
   return res.json(new ApiResponse(200, users, "Users found"));
 });
 
 // Create Chat
 const createChat = asyncHandler(async (req, res, _) => {
   const { isGroupChat, chatName, users } = req.body;
-  console.log("usersnotcoming",users);
   
   if (!users || users.length < 1) {
     throw new ApiError(400, "Users are required to create a chat");

@@ -17,7 +17,6 @@ const Login = () => {
     try {
       const loginUser = await loginServices(data);
       if(loginUser){
-        console.log(loginUser);
         dispatch(reduxLogin(loginUser.data))
       }
 

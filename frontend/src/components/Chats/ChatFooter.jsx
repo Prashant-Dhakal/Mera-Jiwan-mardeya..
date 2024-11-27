@@ -28,7 +28,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
       };
 
       const message = await messageService(messageObject);
-      console.log(message.data.sender);
+      // console.log(message.data.sender);
       
       if (message) {
         socket.emit("send-message", {
@@ -50,12 +50,10 @@ const ChatFooter = ({ chat, setIsTyping }) => {
     socket.emit("join-chat", chat?._id);
 
     socket.on("isTyping", (chatId) => {
-      console.log("Typing event received:", chatId);
       setIsTyping(true);
     });
 
     socket.on("isStop-typing", () => {
-      console.log("stop typing");
       setIsTyping(false);
 
 
@@ -78,7 +76,6 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
         if (timeDiff >= timerLength && typing) {
           socket.emit("stop-typing", chat?._id);
-          console.log('here stop typing');
           
           setTyping(false);
         }

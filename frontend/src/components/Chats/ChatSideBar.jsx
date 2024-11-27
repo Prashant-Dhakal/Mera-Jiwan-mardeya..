@@ -9,13 +9,12 @@ import { useDispatch, useSelector } from "react-redux";
 const ChatSidebar = ({ onSelectChat }) => {
   const dispatch = useDispatch();
   const loggedUser = useSelector((state) => state.auth.userData);
+  const chats = useSelector((state) => state.message.userLists);
 
   // Fetch chats on component mount
   const fetchChats = async () => {
     const loggedUserChats = await getChats();
     if (loggedUserChats && loggedUserChats.length > 0) {
-      console.log(loggedUserChats);
-
       dispatch(userList(loggedUserChats));
     }
   };
@@ -23,9 +22,6 @@ const ChatSidebar = ({ onSelectChat }) => {
   useEffect(() => {
     fetchChats();
   }, [dispatch]);
-
-  // Select chats from Redux
-  const chats = useSelector((state) => state.message.userLists);
 
   return (
     <div className="w-1/3 bg-white shadow-lg p-6 border-r border-gray-200">

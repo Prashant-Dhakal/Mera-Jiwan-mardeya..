@@ -3,8 +3,6 @@ import axios from "axios";
 // Register User
 export const registerUser = async (userData) => {
   try {
-    console.log(userData);
-
     const response = await axios.post("/user/register", userData);
     return response.data;
   } catch (error) {

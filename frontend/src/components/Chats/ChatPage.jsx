@@ -1,4 +1,3 @@
-// ChatPage.jsx
 import React, { useState, useEffect } from "react";
 import ChatSidebar from "./ChatSideBar.jsx";
 import ChatBody from "./ChatBody.jsx";
@@ -7,7 +6,7 @@ import { login } from "../../store/Authentication.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { sendMessage } from "../../store/MessageSlice.js"; // Import Redux action for sending messages
+import { sendMessage, userList } from "../../store/MessageSlice.js"; // Import Redux action for sending messages
 
 const endPoint = "http://localhost:3000";
 let socket;
@@ -19,8 +18,9 @@ const ChatPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const loggedUser = useSelector((state) => state.auth.userData);
-
+  const loggedUser = useSelector((state) => state.auth?.userData);
+  const chats = useSelector((state) => state.message?.userLists);
+  
   useEffect(() => {
     if (loggedUser) {
       socket = io(endPoint);
@@ -32,7 +32,7 @@ const ChatPage = () => {
         socket.off();
       };
     }
-  }, [loggedUser, dispatch]);
+  }, [loggedUser]);
 
   const getCurrentUser = async () => {
     try {
@@ -59,24 +59,48 @@ const ChatPage = () => {
   };
 
   useEffect(() => {
-    if (socket) {
-      socket.on("message-received", (newMessage) => {
-        // Dispatch the new message to the Redux store
-        dispatch(
-          sendMessage({
-            content: newMessage.content,
-            sender: newMessage.sender,
-          })
-        );
+    if (!socket) return;
+  
+    // Listen for incoming messages
+    socket.on("message-received", (newMessage) => {
+      dispatch(
+        sendMessage({
+          content: newMessage.content,
+          sender: newMessage.sender,
+        })
+      );
+    });
+  
+    // Emit chat notifications
+    const sendNotifications = () => {
+      chats.forEach((chat) => {
+        const receiver = chat.users.find((user) => loggedUser?.id !== user?._id);
+        if (receiver) {
+          const notification = {
+            receiverId: receiver._id,
+            chatDetails: chat,
+          };
+          console.log("Emitting chat-notification:", notification);
+          socket.emit("chat-notification", notification);
+        }
       });
+    };
+  
+    if (socketConnected && chats.length > 0) {
+      sendNotifications();
     }
+  
+    socket.on("chat-notify", (updatedChats) =>{
+      console.log([updatedChats]);
+      dispatch(userList([updatedChats]));
+    });
 
     return () => {
-      if (socket) {
-        socket.off("message-received");
-      }
+      socket.off("message-received");
+      socket.off("chat-notify");
     };
-  }, [socket, dispatch]);
+  }, [socket, socketConnected, chats, loggedUser, dispatch]);
+  
 
   return (
     <div className="flex h-screen">

@@ -19,7 +19,6 @@ const Register = () => {
       const createdUser = await registerUser(data);
 
       if (createdUser) {
-        console.log(createdUser);
         dispatch(login(data));
       }
 

@@ -24,15 +24,12 @@ connectDB().then(() => {
   io.on("connection", (socket) => {
     
     socket.on("setup", (userData) => {
-      console.log("hope usedata",userData);
-      
       socket.join(userData?.id); // Join the user's private room
       socket.emit("connected");
     });
 
     socket.on("join-chat", (room) => {
       socket.join(room);
-      console.log("User joined room " + room);
     });
 
     socket.on("typing", (chatId) => {
@@ -58,6 +55,11 @@ connectDB().then(() => {
 
       console.log(`Message sent to room: ${chatId}, sender: ${sender}`);
     });
+
+    socket.on("chat-notification", (notification)=>{
+      const { receiverId, chatDetails } = notification;
+      socket.to(receiverId).emit("chat-notify", chatDetails)
+    })
     
   });
 });

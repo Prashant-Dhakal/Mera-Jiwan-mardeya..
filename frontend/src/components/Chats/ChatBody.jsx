@@ -17,9 +17,9 @@ const ChatBody = ({ chats }) => {
     }
   };
 
-  useEffect(() => {
-    console.log("ISTYping is triggering ", isTyping);
-  }, [isTyping]);
+  // useEffect(() => {
+  //   console.log("ISTYping is triggering ", isTyping);
+  // }, [isTyping]);
 
   return (
     <div className="flex flex-col w-full">
