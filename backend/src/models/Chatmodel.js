@@ -14,6 +14,13 @@ const chatSchema = new mongoose.Schema(
         return this.isGroupChat
       },
     },
+    block: {
+      type: Boolean,
+      default: false,
+      required: function(){
+        return !this.isGroupChat
+      }
+    },
     users: [
       {
         type: mongoose.Schema.Types.ObjectId,

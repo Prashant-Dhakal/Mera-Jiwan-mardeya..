@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { sendMessage as messageService } from "../../services/everyServices.js";
 import { useForm } from "react-hook-form";
-import { sendMessage } from "../../store/MessageSlice.js";
+import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
+import EmojiPicker from "emoji-picker-react";
 import io from "socket.io-client";
 
 const socket = io("http://localhost:3000"); // Connect to the socket server globally
 
 const ChatFooter = ({ chat, setIsTyping }) => {
   const [typing, setTyping] = useState(false);
-
-  const { register, handleSubmit, reset, watch } = useForm();
-  const dispatch = useDispatch();
-  const loggedUser = useSelector((state) => state.auth?.userData);
+  const [emojiOpen, setEmojiOpen] = useState(false);
+  const { register, handleSubmit, reset, watch, getValues, setValue } = useForm();
   const messageInput = watch("content", "");
+  const loggedUser = useSelector((state) => state.auth?.userData);
 
   const messageCreate = async (data) => {
     try {
@@ -29,7 +30,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
       const message = await messageService(messageObject);
       // console.log(message.data.sender);
-      
+
       if (message) {
         socket.emit("send-message", {
           content: message.data.content,
@@ -45,6 +46,8 @@ const ChatFooter = ({ chat, setIsTyping }) => {
     }
   };
 
+  const handleEmoji = () => setEmojiOpen((prev) => !prev);
+
   useEffect(() => {
     socket.emit("setup", loggedUser);
     socket.emit("join-chat", chat?._id);
@@ -55,10 +58,8 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
     socket.on("isStop-typing", () => {
       setIsTyping(false);
-
-
     });
-  }, []);
+  }, []); 
 
   useEffect(() => {
     if (messageInput) {
@@ -76,7 +77,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
         if (timeDiff >= timerLength && typing) {
           socket.emit("stop-typing", chat?._id);
-          
+
           setTyping(false);
         }
       }, timerLength);
@@ -96,58 +97,120 @@ const ChatFooter = ({ chat, setIsTyping }) => {
   }, [typing]);
 
   return (
-    <Box
-      onSubmit={handleSubmit(messageCreate)}
-      component="form"
-      sx={{
-        bgcolor: "white",
-        p: 2,
-        display: "flex",
-        alignItems: "center",
-        borderTop: "1px solid #E0E0E0",
-        boxShadow: "0px -2px 5px rgba(0, 0, 0, 0.1)", // subtle shadow for separation
-      }}
-    >
-      {/* Text Input */}
-      <TextField
-        variant="outlined"
-        placeholder="Type your message here..."
-        fullWidth
-        size="small"
-        autoComplete="off"
-        {...register("content", { required: true })}
-        sx={{
-          flexGrow: 1,
-          borderRadius: "10px",
-          "& .MuiOutlinedInput-root": {
+    <>
+      {chat.block ? (
+        <Box
+          sx={{
+            bgcolor: "#f5f5f5",
+            p: 3,
+            textAlign: "center",
             borderRadius: "10px",
-          },
-          marginRight: 2,
-        }}
-      />
-  
-      {/* Send Button */}
-      <Button
-        variant="contained"
-        color="primary"
-        type="submit"
-        sx={{
-          px: 3,
-          height: "40px",
-          bgcolor: "#FF8C00",
-          textTransform: "capitalize",
-          fontWeight: "bold",
-          "&:hover": {
-            bgcolor: "#FF6B6B",
-          },
-          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-        }}
-      >
-        Send
-      </Button>
-    </Box>
+            color: "#757575",
+            fontSize: "16px",
+          }}
+        >
+          <p>You have been blocked by this user.</p>
+        </Box>
+      ) : (
+        <Box
+          onSubmit={handleSubmit(messageCreate)}
+          component="form"
+          sx={{
+            bgcolor: "white",
+            p: 2,
+            display: "flex",
+            alignItems: "center",
+            borderTop: "1px solid #E0E0E0",
+            boxShadow: "0px -2px 5px rgba(0, 0, 0, 0.1)",
+            position: "relative", // for positioning the emoji picker
+          }}
+        >
+          {/* Text Input */}
+          <TextField
+            variant="outlined"
+            placeholder="Type your message here..."
+            fullWidth
+            size="small"
+            autoComplete="off"
+            disabled={chat.block} // Disable input if blocked
+            {...register("content", { required: true })}
+            sx={{
+              flexGrow: 1,
+              borderRadius: "10px",
+              "& .MuiOutlinedInput-root": {
+                borderRadius: "10px",
+              },
+              marginRight: 2,
+              backgroundColor: chat.block ? "#e0e0e0" : "#fff", // Light gray if blocked
+              "& .MuiInputBase-input": {
+                padding: "10px",
+                color: chat.block ? "#757575" : "black", // Change text color when blocked
+              },
+            }}
+          />
+
+          {/* Emoji Picker Toggle Button */}
+          <IconButton
+            onClick={handleEmoji}
+            sx={{
+              marginRight: 2,
+              cursor: "pointer",
+              color: "#757575",
+              "&:hover": {
+                color: "#FF8C00",
+              },
+            }}
+          >
+            <SentimentSatisfiedAltIcon fontSize="medium" />
+          </IconButton>
+
+          {/* Emoji Picker Component */}
+          {emojiOpen && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: "60px", // Adjust to show above input
+                right: "20px", // Adjust positioning
+                zIndex: 1000,
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.15)",
+              }}
+            >
+              <EmojiPicker
+                onEmojiClick={(emoji) => {
+                  // Handle emoji selection (append to message input)
+                  const currentValue = getValues("content") || "";
+                  setValue("content", currentValue + emoji.emoji);
+                  setEmojiOpen(false);
+                }}
+              />
+            </Box>
+          )}
+
+          {/* Send Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            type="submit"
+            sx={{
+              px: 3,
+              height: "40px",
+              bgcolor: "#FF8C00",
+              textTransform: "capitalize",
+              fontWeight: "bold",
+              "&:hover": {
+                bgcolor: "#FF6B6B",
+              },
+              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+              cursor: chat.block ? "not-allowed" : "pointer", // Disable button if blocked
+            }}
+            disabled={chat.block} // Disable button if blocked
+          >
+            Send
+          </Button>
+        </Box>
+      )}
+    </>
   );
-  
 };
 
 export default ChatFooter;

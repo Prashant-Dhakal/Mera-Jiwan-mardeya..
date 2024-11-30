@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  blockUser,
   createChat,
   createMessage,
   getAllMessages,
@@ -26,5 +27,6 @@ router.route("/createChat").post(JwtVerify, createChat); // Create a Chat ✔
 router.route("/sendmessage").post(JwtVerify, createMessage); // Create a Message ✔
 router.route("/allmessage/:chatId").get(JwtVerify, getAllMessages); // Get all messages ✔
 router.route("/chats").get(JwtVerify, getChats); // Get Chats ✔
+router.route("/blockUser").patch(JwtVerify, blockUser); // Get Chats ✔
 
 export { router };

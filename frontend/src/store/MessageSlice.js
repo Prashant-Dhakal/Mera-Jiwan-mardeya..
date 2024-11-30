@@ -4,17 +4,23 @@ import { nanoid } from "@reduxjs/toolkit";
 const initialState = {
   messages: [],
   userLists: [], // UserChatList
+  selectedChat: null,
 };
 
 const MessageSlice = createSlice({
   name: "message",
   initialState,
   reducers: {
+
+    setSelectedChat: (state, action) =>{
+      state.selectedChat = action.payload
+    },
+
     sendMessage: (state, action) => {
       const message = {
         id: nanoid(),
         content: action.payload.content,
-        sender: action.payload.sender
+        sender: action.payload.sender,
       };
 
       state.messages.push(message);
@@ -22,21 +28,19 @@ const MessageSlice = createSlice({
     },
 
     userList: (state, action) => {
-      if (state.userLists.length === 0) {
-        state.userLists = [...action.payload];
-      } else {
-        console.log(action.payload);
-        
-        action.payload.forEach((newUser) => {
-          const result = state.userLists.find(
-            (user) => user?._id === newUser?._id
-          );
-
-          if (!result) {
-            state.userLists = [...state.userLists, newUser];
-          }
-        });
-      }
+      const incomingChats = action.payload || [];
+    
+      incomingChats.forEach((newChat) => {
+        const existingChat = state.userLists.find(
+          (chat) => chat._id === newChat._id
+        );
+    
+        if (!existingChat) {
+          state.userLists.push(newChat);
+        } else if (existingChat.block !== newChat.block) {
+          existingChat.block = newChat.block;
+        }
+      });
     },
 
     resetMessages: (state) => {
@@ -45,5 +49,5 @@ const MessageSlice = createSlice({
   },
 });
 
-export const { sendMessage, userList, resetMessages } = MessageSlice.actions;
+export const { sendMessage, userList, resetMessages, setSelectedChat } = MessageSlice.actions;
 export default MessageSlice.reducer;

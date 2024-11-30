@@ -103,6 +103,17 @@ export const getChats = async () => {
   }
 };
 
+export const blockUser = async (chatId) =>{
+  try {
+    const response = await axios.patch("/user/blockUser", {chatId},{
+      withCredentials: true
+    });
+     return response.data.data;
+  } catch (error) {
+    handleError(error)
+  }
+}
+
 // Handle Errors Globally
 const handleError = (error) => {
   if (error.response) {

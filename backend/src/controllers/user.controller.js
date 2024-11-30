@@ -30,7 +30,7 @@ const generateAccessAndRefreshToken = async function (userId) {
 // Register User
 const registerUser = asyncHandler(async (req, res, next) => {
   const { username, email, password } = req.body;
-  
+
   // Check if the user already exists
   const userExists = await User.findOne({ email });
   if (userExists) {
@@ -86,7 +86,6 @@ const loggingUser = async (email, password) => {
   const loggedUser = await User.findById(user?._id).select(
     "-password -refreshToken"
   );
-  
 
   return { loggedUser, accessToken, refreshToken };
 };
@@ -221,14 +220,15 @@ const getUserDetails = asyncHandler(async (req, res, next) => {
 
 // Search Users
 const getUsers = asyncHandler(async (req, res, next) => {
-  const {username} = req.query;
+  const { username } = req.query;
 
-  if (!username || typeof username !== 'string') {
+  if (!username || typeof username !== "string") {
     throw new ApiError(404, "Username not provided or invalid");
   }
 
-  const users = await User.find({ username: new RegExp(`^${username}`, "i") })
-  .select("-refreshToken -password")
+  const users = await User.find({
+    username: new RegExp(`^${username}`, "i"),
+  }).select("-refreshToken -password");
 
   if (users.length === 0) {
     throw new ApiError(400, `No users found with username: ${username}`);
@@ -240,7 +240,7 @@ const getUsers = asyncHandler(async (req, res, next) => {
 // Create Chat
 const createChat = asyncHandler(async (req, res, _) => {
   const { isGroupChat, chatName, users } = req.body;
-  
+
   if (!users || users.length < 1) {
     throw new ApiError(400, "Users are required to create a chat");
   }
@@ -250,7 +250,7 @@ const createChat = asyncHandler(async (req, res, _) => {
     const existingChat = await Chat.findOne({
       isGroupChat: false,
       users: { $all: [req.user._id, users] },
-    })    
+    });
 
     if (existingChat) {
       return res.json(
@@ -261,26 +261,27 @@ const createChat = asyncHandler(async (req, res, _) => {
     const newChat = await Chat.create({
       isGroupChat,
       users: [req.user?._id, users],
-    })
+    });
 
     if (!newChat) {
       throw new ApiError(
         400,
         "Chat not creating due to some error please wait........."
       );
-    };
+    }
 
     const createdChat = await Chat.find(newChat?._id)
-    .populate("users", "-password -refreshToken")
-    .populate("latestMessage", "content")
-    .sort({ updatedAt: -1 });
+      .populate("users", "-password -refreshToken")
+      .populate("latestMessage", "content")
+      .sort({ updatedAt: -1 });
 
     return res.json(new ApiResponse(201, createdChat, "New chat created"));
   }
 
   // Group Chat
   if (isGroupChat) {
-    if (!chatName) throw new ApiError(400, "Required Group name to create Group");
+    if (!chatName)
+      throw new ApiError(400, "Required Group name to create Group");
 
     const newGroupChat = await Chat.create({
       isGroupChat,
@@ -289,16 +290,21 @@ const createChat = asyncHandler(async (req, res, _) => {
       groupAdmin: req.user?._id,
     });
 
-    if(!newGroupChat){
-      throw new ApiError(400, "GroupChat not creating due to some error please wait.........")
+    if (!newGroupChat) {
+      throw new ApiError(
+        400,
+        "GroupChat not creating due to some error please wait........."
+      );
     }
 
     const createdGroupChat = await Chat.find(newGroupChat?._id)
-    .populate("users", "-password -refreshToken")
-    .populate("latestMessage", "content")
-    .sort({ updatedAt: -1 });
+      .populate("users", "-password -refreshToken")
+      .populate("latestMessage", "content")
+      .sort({ updatedAt: -1 });
 
-    return res.json(new ApiResponse(201, createdGroupChat, "New group chat created"));
+    return res.json(
+      new ApiResponse(201, createdGroupChat, "New group chat created")
+    );
   }
 });
 
@@ -332,13 +338,19 @@ const createMessage = asyncHandler(async (req, res, next) => {
     });
 
     // Update the chat's latestMessage field with the newly created message ID
-    await Chat.findByIdAndUpdate(chatId, { latestMessage: message._id }, { new: true });
+    await Chat.findByIdAndUpdate(
+      chatId,
+      { latestMessage: message._id },
+      { new: true }
+    );
 
     const fullMessage = await Message.findById(message._id)
       .populate("sender", "username")
       .populate("chat");
 
-    return res.json(new ApiResponse(200, fullMessage, "Message sent successfully"));
+    return res.json(
+      new ApiResponse(200, fullMessage, "Message sent successfully")
+    );
   } catch (error) {
     return next(new ApiError(500, "Failed to send the message"));
   }
@@ -348,7 +360,6 @@ const createMessage = asyncHandler(async (req, res, next) => {
 const getAllMessages = asyncHandler(async (req, res, next) => {
   const { chatId } = req.params;
   // console.log(chatId);
-  
 
   const messages = await Message.find({ chat: chatId })
     .populate("sender", "username")
@@ -357,8 +368,35 @@ const getAllMessages = asyncHandler(async (req, res, next) => {
   if (!messages || messages.length === 0) {
     throw new ApiError(404, "No messages found in this chat");
   }
-   
-  return res.json(new ApiResponse(200, messages, "All message retrived successfully"))
+
+  return res.json(
+    new ApiResponse(200, messages, "All message retrived successfully")
+  );
+});
+
+const blockUser = asyncHandler(async (req, res, next) => {
+  const { chatId } = req.body;
+  if (!chatId) {
+    throw new ApiError(404, "User ID not founded");
+  }
+
+  const chat = await Chat.findByIdAndUpdate(
+    chatId,
+    {
+      block: true,
+    },
+    {
+      new: true,
+    }
+  );
+
+  if(!chat){
+    throw new ApiError(500, "Not update the Block Boolean")
+  };
+
+  return res.json(
+  new ApiResponse(200, chat, "User Successfully Blocked")
+  );
 });
 
 export {
@@ -371,5 +409,6 @@ export {
   createChat,
   createMessage,
   getAllMessages,
-  getChats
+  getChats,
+  blockUser
 };

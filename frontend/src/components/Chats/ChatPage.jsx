@@ -20,6 +20,12 @@ const ChatPage = () => {
 
   const loggedUser = useSelector((state) => state.auth?.userData);
   const chats = useSelector((state) => state.message?.userLists);
+
+  useEffect(() => {
+    console.log(selectedChat);
+    
+  }, [selectedChat])
+  
   
   useEffect(() => {
     if (loggedUser) {
@@ -80,7 +86,6 @@ const ChatPage = () => {
             receiverId: receiver._id,
             chatDetails: chat,
           };
-          console.log("Emitting chat-notification:", notification);
           socket.emit("chat-notification", notification);
         }
       });

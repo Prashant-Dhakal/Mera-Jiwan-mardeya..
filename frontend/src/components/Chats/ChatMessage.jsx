@@ -10,6 +10,8 @@ const ChatMessages = ({ chat }) => {
 
   const fetchMessages = async () => {
     try {
+      if(chat?.block) return;
+
       const allMessages = await getAllMessages(chat?._id);
       if (allMessages.data.length > 0) {
         allMessages.data.forEach((fetchedMsg) => {
