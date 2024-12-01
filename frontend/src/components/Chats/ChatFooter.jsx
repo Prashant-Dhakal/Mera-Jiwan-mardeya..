@@ -12,19 +12,20 @@ import io from "socket.io-client";
 
 const socket = io("http://localhost:3000"); // Connect to the socket server globally
 
-const ChatFooter = ({ chat, setIsTyping }) => {
+const ChatFooter = ({ setIsTyping }) => {
   const [typing, setTyping] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const { register, handleSubmit, reset, watch, getValues, setValue } = useForm();
   const messageInput = watch("content", "");
   const loggedUser = useSelector((state) => state.auth?.userData);
+  const selectedChat = useSelector((state) => state.message?.selectedChat);
 
   const messageCreate = async (data) => {
     try {
-      socket.emit("stop-typing", chat?._id);
+      socket.emit("stop-typing", selectedChat?._id);
 
       const messageObject = {
-        chatId: chat?._id,
+        chatId: selectedChat?._id,
         content: data?.content,
       };
 
@@ -35,7 +36,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
         socket.emit("send-message", {
           content: message.data.content,
           sender: message.data.sender,
-          chatId: chat?._id,
+          chatId: selectedChat?._id,
         });
 
         // Reset the message input
@@ -50,7 +51,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
   useEffect(() => {
     socket.emit("setup", loggedUser);
-    socket.emit("join-chat", chat?._id);
+    socket.emit("join-chat", selectedChat?._id);
 
     socket.on("isTyping", (chatId) => {
       setIsTyping(true);
@@ -65,7 +66,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
     if (messageInput) {
       if (!typing) {
         setTyping(true);
-        socket.emit("typing", chat?._id);
+        socket.emit("typing", selectedChat?._id);
       }
 
       const lastTypingTime = new Date().getTime();
@@ -76,7 +77,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
         const timeDiff = timeNow - lastTypingTime;
 
         if (timeDiff >= timerLength && typing) {
-          socket.emit("stop-typing", chat?._id);
+          socket.emit("stop-typing", selectedChat?._id);
 
           setTyping(false);
         }
@@ -85,11 +86,11 @@ const ChatFooter = ({ chat, setIsTyping }) => {
       return () => clearTimeout(typingTimeout); // cleanup timeout when typingInput changes
     } else {
       if (typing) {
-        socket.emit("stop-typing", chat?._id); // Emit stop-typing when input is cleared
+        socket.emit("stop-typing", selectedChat?._id); // Emit stop-typing when input is cleared
         setTyping(false);
       }
     }
-  }, [messageInput, typing, chat?._id]);
+  }, [messageInput, typing, selectedChat?._id]);
 
   //Debugging Purpose UseEffect
   useEffect(() => {
@@ -98,7 +99,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
 
   return (
     <>
-      {chat.block ? (
+      {selectedChat.block ? (
         <Box
           sx={{
             bgcolor: "#f5f5f5",
@@ -132,7 +133,7 @@ const ChatFooter = ({ chat, setIsTyping }) => {
             fullWidth
             size="small"
             autoComplete="off"
-            disabled={chat.block} // Disable input if blocked
+            disabled={selectedChat.block} // Disable input if blocked
             {...register("content", { required: true })}
             sx={{
               flexGrow: 1,
@@ -141,10 +142,10 @@ const ChatFooter = ({ chat, setIsTyping }) => {
                 borderRadius: "10px",
               },
               marginRight: 2,
-              backgroundColor: chat.block ? "#e0e0e0" : "#fff", // Light gray if blocked
+              backgroundColor: selectedChat.block ? "#e0e0e0" : "#fff", // Light gray if blocked
               "& .MuiInputBase-input": {
                 padding: "10px",
-                color: chat.block ? "#757575" : "black", // Change text color when blocked
+                color: selectedChat.block ? "#757575" : "black", // Change text color when blocked
               },
             }}
           />
@@ -201,9 +202,9 @@ const ChatFooter = ({ chat, setIsTyping }) => {
                 bgcolor: "#FF6B6B",
               },
               boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              cursor: chat.block ? "not-allowed" : "pointer", // Disable button if blocked
+              cursor: selectedChat.block ? "not-allowed" : "pointer", // Disable button if blocked
             }}
-            disabled={chat.block} // Disable button if blocked
+            disabled={selectedChat.block} // Disable button if blocked
           >
             Send
           </Button>

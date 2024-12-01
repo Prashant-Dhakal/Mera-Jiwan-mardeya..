@@ -8,13 +8,14 @@ import ConformBox from "./ConformBox";
 import { blockUser } from "../../services/everyServices";
 import { userList } from "../../store/MessageSlice";
 
-const ChatHeader = ({ chat }) => {
+const ChatHeader = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const dispatch = useDispatch();
 
   const loggedUser = useSelector((state) => state.auth?.userData);
-  const otherUser = chat.users.find((user) => user._id !== loggedUser.id);
+  const selectedChat = useSelector((state) => state.message?.selectedChat);
+  const otherUser = selectedChat.users.find((user) => user._id !== loggedUser.id);
 
   const toggleDrawer = (open) => (event) => {
     if (
@@ -32,7 +33,7 @@ const ChatHeader = ({ chat }) => {
 
   const confirmBlock = async () => {
     try {
-      const blockUserResponse = await blockUser(chat?._id);
+      const blockUserResponse = await blockUser(selectedChat?._id);
       if (blockUserResponse) {
         dispatch(userList([blockUserResponse]));
       }
@@ -55,7 +56,7 @@ const ChatHeader = ({ chat }) => {
         </div>
         <div>
           <p className="font-bold text-gray-900 text-lg">
-            {chat?.isGroupChat ? chat?.chatName : otherUser?.username}
+            {selectedChat?.isGroupChat ? selectedChat?.chatName : otherUser?.username}
           </p>
           <p className="text-sm text-gray-500">Active now</p>
         </div>
@@ -111,8 +112,8 @@ const ChatHeader = ({ chat }) => {
             Chat Details
           </Typography>
           <Typography variant="body1" gutterBottom>
-            {chat?.isGroupChat
-              ? `Group Name: ${chat?.chatName}`
+            {selectedChat?.isGroupChat
+              ? `Group Name: ${selectedChat?.chatName}`
               : `Chatting with: ${otherUser?.username}`}
           </Typography>
 

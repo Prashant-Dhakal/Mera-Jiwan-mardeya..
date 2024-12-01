@@ -38,6 +38,7 @@ const MessageSlice = createSlice({
         if (!existingChat) {
           state.userLists.push(newChat);
         } else if (existingChat.block !== newChat.block) {
+          state.selectedChat.block = newChat.block 
           existingChat.block = newChat.block;
         }
       });

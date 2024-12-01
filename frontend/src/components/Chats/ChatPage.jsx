@@ -6,13 +6,13 @@ import { login } from "../../store/Authentication.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { sendMessage, userList } from "../../store/MessageSlice.js"; // Import Redux action for sending messages
+import { sendMessage, userList, setSelectedChat } from "../../store/MessageSlice.js"; // Import Redux action for sending messages
 
 const endPoint = "http://localhost:3000";
 let socket;
 
 const ChatPage = () => {
-  const [selectedChat, setSelectedChat] = useState(null);
+  // const [selectedChat, setSelectedChat] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
   const dispatch = useDispatch();
@@ -20,6 +20,7 @@ const ChatPage = () => {
 
   const loggedUser = useSelector((state) => state.auth?.userData);
   const chats = useSelector((state) => state.message?.userLists);
+  const selectedChat = useSelector((state) => state.message?.selectedChat);
 
   useEffect(() => {
     console.log(selectedChat);
@@ -60,7 +61,7 @@ const ChatPage = () => {
 
   // Join chat in socket
   const handleChatSelection = (chat) => {
-    setSelectedChat(chat);
+    dispatch(setSelectedChat(chat))
     socket.emit("join-chat", chat?._id);
   };
 
@@ -111,7 +112,7 @@ const ChatPage = () => {
     <div className="flex h-screen">
       <ChatSidebar onSelectChat={handleChatSelection} />
       {selectedChat ? (
-        <ChatBody chats={selectedChat} />
+        <ChatBody />
       ) : (
         <div className="flex flex-col w-full justify-center items-center">
           <h2 className="text-2xl font-semibold">

@@ -3,16 +3,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { sendMessage, resetMessages } from "../../store/MessageSlice.js";
 import { getAllMessages } from "../../services/everyServices.js";
 
-const ChatMessages = ({ chat }) => {
+const ChatMessages = () => {
   const dispatch = useDispatch();
   const loggedUserId = useSelector((state) => state.auth.userData.id);
   const messages = useSelector((state) => state.message.messages);
+  const selectedChat = useSelector((state) => state.message?.selectedChat);
 
   const fetchMessages = async () => {
     try {
-      if(chat?.block) return;
 
-      const allMessages = await getAllMessages(chat?._id);
+      const allMessages = await getAllMessages(selectedChat?._id);
       if (allMessages.data.length > 0) {
         allMessages.data.forEach((fetchedMsg) => {
           dispatch(
@@ -28,13 +28,13 @@ const ChatMessages = ({ chat }) => {
     }
   };
 
-  // Reset messages and fetch new ones when `chat._id` changes
+  // Reset messages and fetch new ones when `selectedChat._id` changes
   useEffect(() => {
-    if (chat?._id) {
+    if (selectedChat?._id) {
       dispatch(resetMessages());
       fetchMessages();
     }
-  }, [chat?._id]);
+  }, [selectedChat?._id]);
 
   return (
     <div className="flex-1 p-4 bg-gray-100 overflow-y-auto">
@@ -42,7 +42,7 @@ const ChatMessages = ({ chat }) => {
         {messages.length > 0 ? (
           messages.map((msg, index) => {
             const username =
-              chat?.isGroupChat == true && msg.sender?._id !== loggedUserId
+              selectedChat?.isGroupChat == true && msg.sender?._id !== loggedUserId
                 ? msg?.sender?.username
                 : null;
 

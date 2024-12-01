@@ -4,9 +4,11 @@ import ChatMessage from "./ChatMessage.jsx";
 import ChatFooter from "./ChatFooter.jsx";
 import Lottie from "react-lottie"
 import animationData from "../../animation/typing.json"
+import { useSelector } from "react-redux";
 
-const ChatBody = ({ chats }) => {
+const ChatBody = () => {
   const [isTyping, setIsTyping] = useState(false);
+  const selectedChat = useSelector((state) => state.message?.selectedChat);
 
   const defaultOptions = {
     loop: true,
@@ -17,14 +19,10 @@ const ChatBody = ({ chats }) => {
     }
   };
 
-  // useEffect(() => {
-  //   console.log("ISTYping is triggering ", isTyping);
-  // }, [isTyping]);
-
   return (
     <div className="flex flex-col w-full">
-      <ChatHeader chat={chats} />
-      <ChatMessage chat={chats} />
+      <ChatHeader />
+      <ChatMessage />
       {isTyping ? 
       <span className="bg-gray-100">
         <Lottie
@@ -34,7 +32,7 @@ const ChatBody = ({ chats }) => {
           style={{marginBottom: 12, marginLeft: 15, marginTop: 10}}
         />
       </span> : null}
-      <ChatFooter chat={chats} setIsTyping={setIsTyping} />
+      <ChatFooter setIsTyping={setIsTyping} />
     </div>
   );
 };
