@@ -7,6 +7,7 @@ import { userList } from "../../store/MessageSlice.js";
 import { useDispatch, useSelector } from "react-redux";
 
 const ChatSidebar = ({ onSelectChat }) => {
+  
   const dispatch = useDispatch();
   const loggedUser = useSelector((state) => state.auth.userData);
   const chats = useSelector((state) => state.message.userLists);
@@ -34,7 +35,7 @@ const ChatSidebar = ({ onSelectChat }) => {
       {/* Chat List */}
       {chats.length > 0 ? (
         chats.map((chat) => {
-          const otherUser = chat.users.find(
+           const otherUser = chat.users.find(
             (user) => user._id !== loggedUser.id
           );
 

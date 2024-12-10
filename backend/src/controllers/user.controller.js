@@ -123,8 +123,6 @@ const logoutUser = async (req, res, next) => {
         new: true,
       }
     );
-    console.log(user);
-
     if (!user) {
       return next(new ApiError(404, "User not found"));
     }
@@ -320,9 +318,9 @@ const getChats = asyncHandler(async (req, res, next) => {
   return res.json(new ApiResponse(201, chats, "All chat retreived"));
 });
 
-// Create Message
 const createMessage = asyncHandler(async (req, res, next) => {
   const { content, chatId } = req.body;
+  const userId = req.user._id;
 
   // Validate input
   if (!content || !chatId) {
@@ -330,14 +328,29 @@ const createMessage = asyncHandler(async (req, res, next) => {
   }
 
   try {
+    const chat = await Chat.findById(chatId).populate(
+      "block.blocker block.blocked"
+    );
+
+    const isBlocked = chat.block.some(
+      (block) => String(block.blocked._id) === String(userId)
+    );
+    console.log("blocking hahaha", isBlocked);
+    if (isBlocked) {
+      throw new ApiResponse(
+        200,
+        null,
+        "You are blocked by this user and cannot send messages."
+      );
+    }
+
     // Create a new message
     const message = await Message.create({
       content,
-      sender: req.user?._id, // Assuming `req.user` is populated by authentication middleware
+      sender: req.user?._id,
       chat: chatId,
     });
 
-    // Update the chat's latestMessage field with the newly created message ID
     await Chat.findByIdAndUpdate(
       chatId,
       { latestMessage: message._id },
@@ -375,28 +388,50 @@ const getAllMessages = asyncHandler(async (req, res, next) => {
 });
 
 const blockUser = asyncHandler(async (req, res, next) => {
+  const { chatId, blockerId, blockedId } = req.body;
+
+  if (!(chatId && blockedId, blockerId)) {
+    throw new ApiError(400, "Not found necessary data to block the user");
+  }
+
+  try {
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+      {
+        $addToSet: { block: { blocker: blockerId, blocked: blockedId } },
+      },
+      { new: true }
+    ).populate("users");
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedChat, "Successfully Block User"));
+  } catch (error) {
+    console.error("Error blocking user:", error);
+    res.status(500).json({ message: "Failed to block user." });
+  }
+});
+
+const unBlockUser = asyncHandler(async (req, res, next) => {
   const { chatId } = req.body;
+
   if (!chatId) {
-    throw new ApiError(404, "User ID not founded");
+    throw new ApiError(404, "Chat ID not found");
   }
 
   const chat = await Chat.findByIdAndUpdate(
     chatId,
     {
-      block: true,
+      $pull: { blocked: req.user._id }, // Remove user from the blocked array
     },
-    {
-      new: true,
-    }
-  );
+    { new: true }
+  ).populate("users", "-password -refreshToken");
 
-  if(!chat){
-    throw new ApiError(500, "Not update the Block Boolean")
-  };
+  if (!chat) {
+    throw new ApiError(500, "Failed to unblock the user");
+  }
 
-  return res.json(
-  new ApiResponse(200, chat, "User Successfully Blocked")
-  );
+  return res.json(new ApiResponse(200, chat, "User successfully unblocked"));
 });
 
 export {
@@ -410,5 +445,6 @@ export {
   createMessage,
   getAllMessages,
   getChats,
-  blockUser
+  blockUser,
+  unBlockUser,
 };

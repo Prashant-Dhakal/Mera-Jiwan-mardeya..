@@ -4,7 +4,10 @@ import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
 import { useSelector } from "react-redux";
-import { sendMessage as messageService } from "../../services/everyServices.js";
+import {
+  sendMessage as messageService,
+  unBlockUser,
+} from "../../services/everyServices.js";
 import { useForm } from "react-hook-form";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
 import EmojiPicker from "emoji-picker-react";
@@ -15,7 +18,8 @@ const socket = io("http://localhost:3000"); // Connect to the socket server glob
 const ChatFooter = ({ setIsTyping }) => {
   const [typing, setTyping] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const { register, handleSubmit, reset, watch, getValues, setValue } = useForm();
+  const { register, handleSubmit, reset, watch, getValues, setValue } =
+    useForm();
   const messageInput = watch("content", "");
   const loggedUser = useSelector((state) => state.auth?.userData);
   const selectedChat = useSelector((state) => state.message?.selectedChat);
@@ -47,6 +51,17 @@ const ChatFooter = ({ setIsTyping }) => {
     }
   };
 
+  const unblockUserFn = async () => {
+    try {
+      const UnblockUserResponse = await unBlockUser(selectedChat?._id);
+      if (UnblockUserResponse) {
+        console.log(UnblockUserResponse);
+        dispatch(userList([UnblockUserResponse.chat]));
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
   const handleEmoji = () => setEmojiOpen((prev) => !prev);
 
   useEffect(() => {
@@ -60,7 +75,7 @@ const ChatFooter = ({ setIsTyping }) => {
     socket.on("isStop-typing", () => {
       setIsTyping(false);
     });
-  }, []); 
+  }, []);
 
   useEffect(() => {
     if (messageInput) {
@@ -92,14 +107,9 @@ const ChatFooter = ({ setIsTyping }) => {
     }
   }, [messageInput, typing, selectedChat?._id]);
 
-  //Debugging Purpose UseEffect
-  useEffect(() => {
-    console.log(messageInput);
-  }, [typing]);
-
   return (
     <>
-      {selectedChat.block ? (
+      {selectedChat.block.some((block) => block.blocked === loggedUser.id) ? (
         <Box
           sx={{
             bgcolor: "#f5f5f5",
@@ -110,9 +120,10 @@ const ChatFooter = ({ setIsTyping }) => {
             fontSize: "16px",
           }}
         >
-          <p>You have been blocked by this user.</p>
+          <p>You have been blocked by this user. You cannot send messages.</p>
         </Box>
       ) : (
+        // Rest of the ChatFooter UI here (TextField, Button, etc.)
         <Box
           onSubmit={handleSubmit(messageCreate)}
           component="form"
@@ -126,14 +137,15 @@ const ChatFooter = ({ setIsTyping }) => {
             position: "relative", // for positioning the emoji picker
           }}
         >
-          {/* Text Input */}
           <TextField
             variant="outlined"
             placeholder="Type your message here..."
             fullWidth
             size="small"
             autoComplete="off"
-            disabled={selectedChat.block} // Disable input if blocked
+            disabled={selectedChat.block.some(
+              (block) => block.blocked === loggedUser._id
+            )} // Disable if user is blocked
             {...register("content", { required: true })}
             sx={{
               flexGrow: 1,
@@ -142,69 +154,33 @@ const ChatFooter = ({ setIsTyping }) => {
                 borderRadius: "10px",
               },
               marginRight: 2,
-              backgroundColor: selectedChat.block ? "#e0e0e0" : "#fff", // Light gray if blocked
+              backgroundColor: selectedChat.block.some(
+                (block) => block.blocked === loggedUser._id
+              )
+                ? "#e0e0e0"
+                : "#fff", // Light gray if blocked
               "& .MuiInputBase-input": {
                 padding: "10px",
-                color: selectedChat.block ? "#757575" : "black", // Change text color when blocked
+                color: selectedChat.block.some(
+                  (block) => block.blocked === loggedUser._id
+                )
+                  ? "#757575"
+                  : "black", // Change text color when blocked
               },
             }}
           />
 
-          {/* Emoji Picker Toggle Button */}
-          <IconButton
-            onClick={handleEmoji}
-            sx={{
-              marginRight: 2,
-              cursor: "pointer",
-              color: "#757575",
-              "&:hover": {
-                color: "#FF8C00",
-              },
-            }}
-          >
+          {/* Emoji Picker and Button */}
+          <IconButton onClick={handleEmoji}>
             <SentimentSatisfiedAltIcon fontSize="medium" />
           </IconButton>
-
-          {/* Emoji Picker Component */}
-          {emojiOpen && (
-            <Box
-              sx={{
-                position: "absolute",
-                bottom: "60px", // Adjust to show above input
-                right: "20px", // Adjust positioning
-                zIndex: 1000,
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.15)",
-              }}
-            >
-              <EmojiPicker
-                onEmojiClick={(emoji) => {
-                  // Handle emoji selection (append to message input)
-                  const currentValue = getValues("content") || "";
-                  setValue("content", currentValue + emoji.emoji);
-                  setEmojiOpen(false);
-                }}
-              />
-            </Box>
-          )}
-
-          {/* Send Button */}
           <Button
             variant="contained"
             color="primary"
             type="submit"
-            sx={{
-              px: 3,
-              height: "40px",
-              bgcolor: "#FF8C00",
-              textTransform: "capitalize",
-              fontWeight: "bold",
-              "&:hover": {
-                bgcolor: "#FF6B6B",
-              },
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              cursor: selectedChat.block ? "not-allowed" : "pointer", // Disable button if blocked
-            }}
-            disabled={selectedChat.block} // Disable button if blocked
+            disabled={selectedChat.block.some(
+              (block) => block.blocked === loggedUser._id
+            )} // Disable button if blocked
           >
             Send
           </Button>

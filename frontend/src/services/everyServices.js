@@ -103,9 +103,22 @@ export const getChats = async () => {
   }
 };
 
-export const blockUser = async (chatId) =>{
+export const blockUser = async ({ chatId, blockerId, blockedId }) => {
   try {
-    const response = await axios.patch("/user/blockUser", {chatId},{
+    const response = await axios.patch("/user/blockUser", {
+      chatId,
+      blockerId,
+      blockedId,
+    });
+    return response.data.data;
+  } catch (error) {
+    throw new Error("Error blocking the user: " + error.message);
+  }
+};
+
+export const unBlockUser = async (chatId) =>{
+  try {
+    const response = await axios.patch("/user/unBlockUser", {chatId},{
       withCredentials: true
     });
      return response.data.data;

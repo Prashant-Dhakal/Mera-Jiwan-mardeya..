@@ -30,19 +30,24 @@ const ChatHeader = () => {
   const handleBlockUser = async () => {
     setIsConfirmOpen(true);
   };
-
+  
   const confirmBlock = async () => {
     try {
-      const blockUserResponse = await blockUser(selectedChat?._id);
+      const blockUserResponse = await blockUser({
+        chatId: selectedChat?._id,
+        blockerId: loggedUser?.id,  // The one who is blocking (logged user)
+        blockedId: otherUser?._id,  // The user being blocked
+      });
+  
       if (blockUserResponse) {
-        dispatch(userList([blockUserResponse]));
+        dispatch(userList([blockUserResponse])); 
       }
     } catch (error) {
-      throw error;
+      console.error("Failed to block the user:", error);
     }
-    alert("User has been blocked!"); // Replace with actual block logic
     setIsConfirmOpen(false);
   };
+  
 
   const cancelBlock = () => {
     setIsConfirmOpen(false);

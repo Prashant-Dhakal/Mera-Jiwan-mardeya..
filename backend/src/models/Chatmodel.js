@@ -10,17 +10,16 @@ const chatSchema = new mongoose.Schema(
     chatName: {
       type: String,
       trim: true,
-      required: function(){
-        return this.isGroupChat
+      required: function () {
+        return this.isGroupChat;
       },
     },
-    block: {
-      type: Boolean,
-      default: false,
-      required: function(){
-        return !this.isGroupChat
-      }
-    },
+    block: [
+      {
+        blocker: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        blocked: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      },
+    ],
     users: [
       {
         type: mongoose.Schema.Types.ObjectId,

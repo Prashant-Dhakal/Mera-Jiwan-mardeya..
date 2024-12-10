@@ -10,6 +10,7 @@ import {
   loginUser,
   logoutUser,
   registerUser,
+  unBlockUser,
 } from "../controllers/user.controller.js";
 import { JwtVerify } from "../middlewares/Authenticate.js";
 
@@ -27,6 +28,7 @@ router.route("/createChat").post(JwtVerify, createChat); // Create a Chat ✔
 router.route("/sendmessage").post(JwtVerify, createMessage); // Create a Message ✔
 router.route("/allmessage/:chatId").get(JwtVerify, getAllMessages); // Get all messages ✔
 router.route("/chats").get(JwtVerify, getChats); // Get Chats ✔
-router.route("/blockUser").patch(JwtVerify, blockUser); // Get Chats ✔
+router.route("/blockUser").patch(JwtVerify, blockUser); // Get Blocks ✔
+router.route("/unBlockUser").patch(JwtVerify, unBlockUser); // Get unBlocks ✔
 
 export { router };
