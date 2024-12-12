@@ -116,9 +116,12 @@ export const blockUser = async ({ chatId, blockerId, blockedId }) => {
   }
 };
 
-export const unBlockUser = async (chatId) =>{
+export const unBlockUser = async ({chatId, unBlockerId}) =>{
   try {
-    const response = await axios.patch("/user/unBlockUser", {chatId},{
+    const response = await axios.patch("/user/unBlockUser", {
+      chatId,
+      unBlockerId
+    },{
       withCredentials: true
     });
      return response.data.data;

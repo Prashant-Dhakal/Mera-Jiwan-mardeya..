@@ -33,12 +33,10 @@ connectDB().then(() => {
     });
 
     socket.on("typing", (chatId) => {
-      // console.log("fff footersocket received", chatId);
-      socket.to(chatId).emit("isTyping", chatId);
+      socket.to(chatId).emit("isTyping");
     });
   
     socket.on("stop-typing", (chatId) => {
-      // console.log("footersocket received" , chatId);
       socket.to(chatId).emit("isStop-typing"); 
     });
 
@@ -56,10 +54,14 @@ connectDB().then(() => {
       console.log(`Message sent to room: ${chatId}, sender: ${sender}`);
     });
 
-    socket.on("chat-notification", (notification)=>{
+    socket.on("userList", (notification)=>{
       const { receiverId, chatDetails } = notification;
-      socket.to(receiverId).emit("chat-notify", chatDetails)
+      socket.to(receiverId).emit("userList-notify", [chatDetails])
+    });
+
+    socket.on("block", (chatId)=> {
+      socket.to(chatId).emit("block-notify");
     })
-    
+
   });
 });

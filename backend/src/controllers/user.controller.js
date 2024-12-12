@@ -406,14 +406,15 @@ const blockUser = asyncHandler(async (req, res, next) => {
     return res
       .status(200)
       .json(new ApiResponse(200, updatedChat, "Successfully Block User"));
+
   } catch (error) {
     console.error("Error blocking user:", error);
-    res.status(500).json({ message: "Failed to block user." });
+    throw new ApiError(500, "Failed to block user.")
   }
 });
 
 const unBlockUser = asyncHandler(async (req, res, next) => {
-  const { chatId } = req.body;
+  const { chatId, unBlockerId } = req.body;
 
   if (!chatId) {
     throw new ApiError(404, "Chat ID not found");
@@ -422,7 +423,7 @@ const unBlockUser = asyncHandler(async (req, res, next) => {
   const chat = await Chat.findByIdAndUpdate(
     chatId,
     {
-      $pull: { blocked: req.user._id }, // Remove user from the blocked array
+      $pull: { block: {blocker: unBlockerId} }, // Remove user from the blocked array
     },
     { new: true }
   ).populate("users", "-password -refreshToken");

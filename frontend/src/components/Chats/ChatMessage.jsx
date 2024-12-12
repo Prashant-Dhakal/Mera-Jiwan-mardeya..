@@ -1,9 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendMessage, resetMessages } from "../../store/MessageSlice.js";
 import { getAllMessages } from "../../services/everyServices.js";
 
 const ChatMessages = () => {
+
+  const [error, seterror] = useState("");
+  
   const dispatch = useDispatch();
   const loggedUserId = useSelector((state) => state.auth.userData.id);
   const messages = useSelector((state) => state.message.messages);
@@ -11,7 +14,6 @@ const ChatMessages = () => {
 
   const fetchMessages = async () => {
     try {
-
       const allMessages = await getAllMessages(selectedChat?._id);
       if (allMessages.data.length > 0) {
         allMessages.data.forEach((fetchedMsg) => {

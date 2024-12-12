@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
+import ConformBox from "./ConformBox.jsx";
 import { useSelector } from "react-redux";
 import {
   sendMessage as messageService,
@@ -18,8 +19,11 @@ const socket = io("http://localhost:3000"); // Connect to the socket server glob
 const ChatFooter = ({ setIsTyping }) => {
   const [typing, setTyping] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
+  const [isConfirmOpen, setisConfirmOpen] = useState(false);
+
   const { register, handleSubmit, reset, watch, getValues, setValue } =
     useForm();
+
   const messageInput = watch("content", "");
   const loggedUser = useSelector((state) => state.auth?.userData);
   const selectedChat = useSelector((state) => state.message?.selectedChat);
@@ -53,15 +57,27 @@ const ChatFooter = ({ setIsTyping }) => {
 
   const unblockUserFn = async () => {
     try {
-      const UnblockUserResponse = await unBlockUser(selectedChat?._id);
-      if (UnblockUserResponse) {
-        console.log(UnblockUserResponse);
-        dispatch(userList([UnblockUserResponse.chat]));
+      const unBlock = await unBlockUser({
+        chatId: selectedChat?._id,
+        unBlockerId: loggedUser.id,
+      });
+      if (unBlock) {
+        console.log("fff", unBlock);
       }
+      setisConfirmOpen(false);
     } catch (error) {
       throw error;
     }
   };
+
+  const openConfirmUnblock = () => {
+    setisConfirmOpen(true);
+  };
+
+  const closeConfirmUnblock = () => {
+    setisConfirmOpen(false);
+  };
+
   const handleEmoji = () => setEmojiOpen((prev) => !prev);
 
   useEffect(() => {
@@ -109,7 +125,40 @@ const ChatFooter = ({ setIsTyping }) => {
 
   return (
     <>
-      {selectedChat.block.some((block) => block.blocked === loggedUser.id) ? (
+      {selectedChat.block.some((block) => block.blocker === loggedUser.id) ? (
+        <Box
+          sx={{
+            bgcolor: "#f5f5f5",
+            p: 3,
+            textAlign: "center",
+            borderRadius: "10px",
+            color: "#757575",
+            fontSize: "16px",
+          }}
+        >
+          <Button
+            onClick={openConfirmUnblock}
+            sx={{
+              bgcolor: "#ff8c00",
+              cursor: "pointer",
+              ":hover": {
+                bgcolor: "#ff6b6b",
+              },
+            }}
+            variant="contained"
+          >
+            Unblock
+          </Button>
+          <ConformBox
+            onCancel={closeConfirmUnblock}
+            onConfirm={unblockUserFn}
+            content="Are you sure you want to unblock this user ?"
+            open={isConfirmOpen}
+          />
+        </Box>
+      ) : selectedChat.block.some(
+          (block) => block.blocked === loggedUser.id
+        ) ? (
         <Box
           sx={{
             bgcolor: "#f5f5f5",
@@ -144,7 +193,7 @@ const ChatFooter = ({ setIsTyping }) => {
             size="small"
             autoComplete="off"
             disabled={selectedChat.block.some(
-              (block) => block.blocked === loggedUser._id
+              (block) => block.blocked === loggedUser.id
             )} // Disable if user is blocked
             {...register("content", { required: true })}
             sx={{
@@ -155,14 +204,14 @@ const ChatFooter = ({ setIsTyping }) => {
               },
               marginRight: 2,
               backgroundColor: selectedChat.block.some(
-                (block) => block.blocked === loggedUser._id
+                (block) => block.blocked === loggedUser.id
               )
                 ? "#e0e0e0"
                 : "#fff", // Light gray if blocked
               "& .MuiInputBase-input": {
                 padding: "10px",
                 color: selectedChat.block.some(
-                  (block) => block.blocked === loggedUser._id
+                  (block) => block.blocked === loggedUser.id
                 )
                   ? "#757575"
                   : "black", // Change text color when blocked
@@ -179,7 +228,7 @@ const ChatFooter = ({ setIsTyping }) => {
             color="primary"
             type="submit"
             disabled={selectedChat.block.some(
-              (block) => block.blocked === loggedUser._id
+              (block) => block.blocked === loggedUser.id
             )} // Disable button if blocked
           >
             Send

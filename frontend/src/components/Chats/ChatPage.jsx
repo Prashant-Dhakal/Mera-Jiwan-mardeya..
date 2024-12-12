@@ -21,12 +21,6 @@ const ChatPage = () => {
   const loggedUser = useSelector((state) => state.auth?.userData);
   const chats = useSelector((state) => state.message?.userLists);
   const selectedChat = useSelector((state) => state.message?.selectedChat);
-
-  useEffect(() => {
-    console.log(selectedChat);
-    
-  }, [selectedChat])
-  
   
   useEffect(() => {
     if (loggedUser) {
@@ -87,7 +81,7 @@ const ChatPage = () => {
             receiverId: receiver._id,
             chatDetails: chat,
           };
-          socket.emit("chat-notification", notification);
+          socket.emit("userList", notification);
         }
       });
     };
@@ -95,12 +89,19 @@ const ChatPage = () => {
     if (socketConnected && chats.length > 0) {
       sendNotifications();
     }
-  
-    socket.on("chat-notify", (updatedChats) =>{
-      console.log([updatedChats]);
-      dispatch(userList([updatedChats]));
-    });
 
+    socket.on("userList-notify", (updatedChats) => {
+      const existingChatIds = chats.map((chat) => chat._id);
+      const newChats = updatedChats.filter(
+        (chat) => !existingChatIds.includes(chat._id)
+      );
+  
+      if (newChats.length > 0) {
+        console.log("New chats detected:", newChats);
+        dispatch(userList([...chats, ...newChats])); // Update only with new chats
+      }
+    });
+  
     return () => {
       socket.off("message-received");
       socket.off("chat-notify");
