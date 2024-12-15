@@ -4,22 +4,25 @@ import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
 import Button from "@mui/material/Button";
 import ConformBox from "./ConformBox.jsx";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   sendMessage as messageService,
   unBlockUser,
 } from "../../services/everyServices.js";
 import { useForm } from "react-hook-form";
+import { sendMessage } from "../../store/MessageSlice.js";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
-import EmojiPicker from "emoji-picker-react";
-import io from "socket.io-client";
-
-const socket = io("http://localhost:3000"); // Connect to the socket server globally
+import EmojiPicker from "emoji-picker-react"; 
+import { getSocket } from "../../services/socketService.js";
 
 const ChatFooter = ({ setIsTyping }) => {
+
+  const socket = getSocket();
+
   const [typing, setTyping] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [isConfirmOpen, setisConfirmOpen] = useState(false);
+  const dispatch = useDispatch()
 
   const { register, handleSubmit, reset, watch, getValues, setValue } =
     useForm();
@@ -38,7 +41,6 @@ const ChatFooter = ({ setIsTyping }) => {
       };
 
       const message = await messageService(messageObject);
-      // console.log(message.data.sender);
 
       if (message) {
         socket.emit("send-message", {
@@ -46,6 +48,12 @@ const ChatFooter = ({ setIsTyping }) => {
           sender: message.data.sender,
           chatId: selectedChat?._id,
         });
+
+        dispatch(sendMessage({
+          content: message.data.content,
+          sender: message.data.sender,
+          chatId: selectedChat?._id,
+        }))
 
         // Reset the message input
         reset();

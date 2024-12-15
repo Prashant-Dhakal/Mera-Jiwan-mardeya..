@@ -22,7 +22,9 @@ connectDB().then(() => {
   });
 
   io.on("connection", (socket) => {
-    
+
+    socket.emit("connecte", "Welcome to the server!");
+
     socket.on("setup", (userData) => {
       socket.join(userData?.id); // Join the user's private room
       socket.emit("connected");

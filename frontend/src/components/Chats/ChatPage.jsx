@@ -5,13 +5,13 @@ import { getUserDetails } from "../../services/everyServices.js";
 import { login } from "../../store/Authentication.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import io from "socket.io-client";
+import {getSocket} from "../../services/socketService.js"
 import { sendMessage, userList, setSelectedChat } from "../../store/MessageSlice.js"; // Import Redux action for sending messages
 
-const endPoint = "http://localhost:3000";
-let socket;
-
 const ChatPage = () => {
+
+  const socket = getSocket();
+
   const [socketConnected, setSocketConnected] = useState(false);
 
   const dispatch = useDispatch();
@@ -23,7 +23,6 @@ const ChatPage = () => {
   
   useEffect(() => {
     if (loggedUser) {
-      socket = io(endPoint);
       socket.emit("setup", loggedUser);
       socket.on("connected", () => setSocketConnected(true));
 
@@ -68,7 +67,7 @@ const ChatPage = () => {
           content: newMessage.content,
           sender: newMessage.sender,
         })
-      );
+      )
     });
   
     // Emit chat notifications
@@ -96,7 +95,6 @@ const ChatPage = () => {
       );
   
       if (newChats.length > 0) {
-        console.log("New chats detected:", newChats);
         dispatch(userList([...chats, ...newChats])); // Update only with new chats
       }
     });
