@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -12,7 +12,7 @@ import {
 import { useForm } from "react-hook-form";
 import { sendMessage } from "../../store/MessageSlice.js";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
-import EmojiPicker from "emoji-picker-react"; 
+import EmojiPicker from "emoji-picker-react"; // Ensure this library is installed
 import { getSocket } from "../../services/socketService.js";
 
 const ChatFooter = ({ setIsTyping }) => {
@@ -22,7 +22,9 @@ const ChatFooter = ({ setIsTyping }) => {
   const [typing, setTyping] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [isConfirmOpen, setisConfirmOpen] = useState(false);
-  const dispatch = useDispatch()
+
+  const emojiPickerRef = useRef(null); // Ref for emoji picker
+  const dispatch = useDispatch();
 
   const { register, handleSubmit, reset, watch, getValues, setValue } =
     useForm();
@@ -49,14 +51,15 @@ const ChatFooter = ({ setIsTyping }) => {
           chatId: selectedChat?._id,
         });
 
-        dispatch(sendMessage({
-          content: message.data.content,
-          sender: message.data.sender,
-          chatId: selectedChat?._id,
-        }))
+        dispatch(
+          sendMessage({
+            content: message.data.content,
+            sender: message.data.sender,
+            chatId: selectedChat?._id,
+          })
+        );
 
-        // Reset the message input
-        reset();
+        reset(); // Reset the message input
       }
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -87,6 +90,26 @@ const ChatFooter = ({ setIsTyping }) => {
   };
 
   const handleEmoji = () => setEmojiOpen((prev) => !prev);
+
+  const onEmojiClick = (emojiObject) => {
+    const currentText = getValues("content");
+    setValue("content", currentText + emojiObject.emoji); // Append emoji to input
+    setEmojiOpen(false); 
+  };
+
+  const handleClickOutside = (event) => {
+    if (
+      emojiPickerRef.current &&
+      !emojiPickerRef.current.contains(event.target)
+    ) {
+      setEmojiOpen(false); // Close the picker if clicked outside
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     socket.emit("setup", loggedUser);
@@ -132,119 +155,118 @@ const ChatFooter = ({ setIsTyping }) => {
   }, [messageInput, typing, selectedChat?._id]);
 
   return (
-    <>
-      {selectedChat.block.some((block) => block.blocker === loggedUser.id) ? (
-        <Box
+    selectedChat.block.some((block) => block.blocker === loggedUser.id) ? (
+      <Box
+        sx={{
+          bgcolor: "#f5f5f5",
+          p: 3,
+          textAlign: "center",
+          borderRadius: "10px",
+          color: "#757575",
+          fontSize: "16px",
+        }}
+      >
+        <Button
+          onClick={openConfirmUnblock}
           sx={{
-            bgcolor: "#f5f5f5",
-            p: 3,
-            textAlign: "center",
+            bgcolor: "#ff8c00",
+            cursor: "pointer",
+            ":hover": {
+              bgcolor: "#ff6b6b",
+            },
+          }}
+          variant="contained"
+        >
+          Unblock
+        </Button>
+        <ConformBox
+          onCancel={closeConfirmUnblock}
+          onConfirm={unblockUserFn}
+          content="Are you sure you want to unblock this user ?"
+          open={isConfirmOpen}
+        />
+      </Box>
+    ) : selectedChat.block.some((block) => block.blocked === loggedUser.id) ? (
+      <Box
+        sx={{
+          bgcolor: "#f5f5f5",
+          p: 3,
+          textAlign: "center",
+          borderRadius: "10px",
+          color: "#757575",
+          fontSize: "16px",
+        }}
+      >
+        <p>You have been blocked by this user. You cannot send messages.</p>
+      </Box>
+    ) : (
+      <Box
+        onSubmit={handleSubmit(messageCreate)}
+        component="form"
+        sx={{
+          bgcolor: "white",
+          p: 2,
+          display: "flex",
+          alignItems: "center",
+          borderTop: "1px solid #E0E0E0",
+          boxShadow: "0px -2px 5px rgba(0, 0, 0, 0.1)",
+          position: "relative",
+        }}
+      >
+        <TextField
+          variant="outlined"
+          placeholder="Type your message here..."
+          fullWidth
+          size="small"
+          autoComplete="off"
+          {...register("content", { required: true })}
+          sx={{
+            flexGrow: 1,
             borderRadius: "10px",
-            color: "#757575",
-            fontSize: "16px",
-          }}
-        >
-          <Button
-            onClick={openConfirmUnblock}
-            sx={{
-              bgcolor: "#ff8c00",
-              cursor: "pointer",
-              ":hover": {
-                bgcolor: "#ff6b6b",
-              },
-            }}
-            variant="contained"
-          >
-            Unblock
-          </Button>
-          <ConformBox
-            onCancel={closeConfirmUnblock}
-            onConfirm={unblockUserFn}
-            content="Are you sure you want to unblock this user ?"
-            open={isConfirmOpen}
-          />
-        </Box>
-      ) : selectedChat.block.some(
-          (block) => block.blocked === loggedUser.id
-        ) ? (
-        <Box
-          sx={{
-            bgcolor: "#f5f5f5",
-            p: 3,
-            textAlign: "center",
-            borderRadius: "10px",
-            color: "#757575",
-            fontSize: "16px",
-          }}
-        >
-          <p>You have been blocked by this user. You cannot send messages.</p>
-        </Box>
-      ) : (
-        // Rest of the ChatFooter UI here (TextField, Button, etc.)
-        <Box
-          onSubmit={handleSubmit(messageCreate)}
-          component="form"
-          sx={{
-            bgcolor: "white",
-            p: 2,
-            display: "flex",
-            alignItems: "center",
-            borderTop: "1px solid #E0E0E0",
-            boxShadow: "0px -2px 5px rgba(0, 0, 0, 0.1)",
-            position: "relative", // for positioning the emoji picker
-          }}
-        >
-          <TextField
-            variant="outlined"
-            placeholder="Type your message here..."
-            fullWidth
-            size="small"
-            autoComplete="off"
-            disabled={selectedChat.block.some(
-              (block) => block.blocked === loggedUser.id
-            )} // Disable if user is blocked
-            {...register("content", { required: true })}
-            sx={{
-              flexGrow: 1,
+            "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
-              "& .MuiOutlinedInput-root": {
-                borderRadius: "10px",
-              },
-              marginRight: 2,
-              backgroundColor: selectedChat.block.some(
-                (block) => block.blocked === loggedUser.id
-              )
-                ? "#e0e0e0"
-                : "#fff", // Light gray if blocked
-              "& .MuiInputBase-input": {
-                padding: "10px",
-                color: selectedChat.block.some(
-                  (block) => block.blocked === loggedUser.id
-                )
-                  ? "#757575"
-                  : "black", // Change text color when blocked
-              },
+            },
+            marginRight: 2,
+            "& .MuiInputBase-input": {
+              padding: "10px",
+            },
+          }}
+        />
+  
+        <IconButton onClick={handleEmoji}>
+          <SentimentSatisfiedAltIcon fontSize="medium" />
+        </IconButton>
+  
+        {emojiOpen && (
+          <Box
+            ref={emojiPickerRef}
+            sx={{
+              position: "absolute",
+              bottom: "60px",
+              right: "10px",
+              zIndex: 10,
+              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+              borderRadius: "10px",
+              backgroundColor: "#fff",
+              width: { xs: "90%", sm: "380px" }, // Responsive width
+              maxHeight: "350px",
+              overflow: "auto",
             }}
-          />
-
-          {/* Emoji Picker and Button */}
-          <IconButton onClick={handleEmoji}>
-            <SentimentSatisfiedAltIcon fontSize="medium" />
-          </IconButton>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-            disabled={selectedChat.block.some(
-              (block) => block.blocked === loggedUser.id
-            )} // Disable button if blocked
           >
-            Send
-          </Button>
-        </Box>
-      )}
-    </>
+            <EmojiPicker
+              onEmojiClick={onEmojiClick}
+              previewConfig={{ showPreview: false }}
+            />
+          </Box>
+        )}
+  
+        <Button variant="contained" color="primary" type="submit">
+          Send
+        </Button>
+      </Box>
+    )
   );
+  
 };
 
 export default ChatFooter;
