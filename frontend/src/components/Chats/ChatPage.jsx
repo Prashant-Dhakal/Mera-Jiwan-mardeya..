@@ -12,7 +12,6 @@ const endPoint = "http://localhost:3000";
 let socket;
 
 const ChatPage = () => {
-  // const [selectedChat, setSelectedChat] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
   const dispatch = useDispatch();
