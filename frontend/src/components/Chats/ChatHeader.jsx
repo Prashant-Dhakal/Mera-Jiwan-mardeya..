@@ -6,11 +6,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { Drawer, Box, IconButton, Typography } from "@mui/material";
 import ConformBox from "./ConformBox";
 import { blockUser } from "../../services/everyServices";
-import { userList } from "../../store/MessageSlice";
+import { blockUsers } from "../../store/MessageSlice.js";
+import {getSocket} from "../../services/socketService.js"
 
 const ChatHeader = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const socket = getSocket();
   const dispatch = useDispatch();
 
   const loggedUser = useSelector((state) => state.auth?.userData);
@@ -33,14 +35,18 @@ const ChatHeader = () => {
   
   const confirmBlock = async () => {
     try {
-      const blockUserResponse = await blockUser({
+
+      const blockOptions = {
         chatId: selectedChat?._id,
         blockerId: loggedUser?.id,  // The one who is blocking (logged user)
         blockedId: otherUser?._id,  // The user being blocked
-      });
+      }
+
+      const blockUserResponse = await blockUser(blockOptions);
   
       if (blockUserResponse) {
-        dispatch(userList([blockUserResponse])); 
+        socket.emit("block", blockUserResponse)
+        dispatch(blockUsers(blockUserResponse)); 
       }
     } catch (error) {
       console.error("Failed to block the user:", error);

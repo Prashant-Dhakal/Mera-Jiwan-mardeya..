@@ -37,11 +37,14 @@ const MessageSlice = createSlice({
     
         if (!existingChat) {
           state.userLists.push(newChat);
-        } else if (existingChat.block !== newChat.block) {
-          state.selectedChat.block = newChat.block 
-          existingChat.block = newChat.block;
         }
       });
+    },
+
+    blockUsers: (state, action) =>{
+      if(state.selectedChat.block != action.payload.block){
+        state.selectedChat.block = action.payload.block;
+      }
     },
 
     resetMessages: (state) => {
@@ -50,5 +53,5 @@ const MessageSlice = createSlice({
   },
 });
 
-export const { sendMessage, userList, resetMessages, setSelectedChat } = MessageSlice.actions;
+export const { sendMessage, userList, resetMessages, setSelectedChat, blockUsers } = MessageSlice.actions;
 export default MessageSlice.reducer;

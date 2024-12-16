@@ -10,7 +10,7 @@ import {
   unBlockUser,
 } from "../../services/everyServices.js";
 import { useForm } from "react-hook-form";
-import { sendMessage } from "../../store/MessageSlice.js";
+import { sendMessage, blockUsers } from "../../store/MessageSlice.js";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
 import EmojiPicker from "emoji-picker-react"; // Ensure this library is installed
 import { getSocket } from "../../services/socketService.js";
@@ -73,7 +73,8 @@ const ChatFooter = ({ setIsTyping }) => {
         unBlockerId: loggedUser.id,
       });
       if (unBlock) {
-        console.log("fff", unBlock);
+        socket.emit("block", unBlock)
+        dispatch(blockUsers(unBlock))
       }
       setisConfirmOpen(false);
     } catch (error) {
@@ -113,15 +114,18 @@ const ChatFooter = ({ setIsTyping }) => {
 
   useEffect(() => {
     socket.emit("setup", loggedUser);
-    socket.emit("join-chat", selectedChat?._id);
 
-    socket.on("isTyping", (chatId) => {
+    socket.on("isTyping", () => {
       setIsTyping(true);
     });
 
     socket.on("isStop-typing", () => {
       setIsTyping(false);
     });
+
+    socket.on("block-notify", (block)=> {
+      dispatch(blockUsers(block))
+    })
   }, []);
 
   useEffect(() => {

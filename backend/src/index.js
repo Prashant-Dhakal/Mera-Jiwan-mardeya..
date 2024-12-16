@@ -61,8 +61,8 @@ connectDB().then(() => {
       socket.to(receiverId).emit("userList-notify", [chatDetails])
     });
 
-    socket.on("block", (chatId)=> {
-      socket.to(chatId).emit("block-notify");
+    socket.on("block", (blocked)=> {
+      socket.to(blocked._id).emit("block-notify", blocked);
     })
 
   });
