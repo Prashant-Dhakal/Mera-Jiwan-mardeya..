@@ -1,20 +1,21 @@
-import React, {useState} from 'react';
+import React from 'react';
 import { Box, List, ListItem, ListItemAvatar, Avatar, ListItemText, Typography } from '@mui/material';
-import {useDispatch} from "react-redux";
-import {userList} from "../../store/MessageSlice.js"
-import store from "../../store/store.js" // this is for checking the MessageSlice userLists array.
 
-const SearchResult = ({ users, inputValueFetchedUser, setUser }) => {
-  const dispatch = useDispatch();
-
+const SearchResult = ({ users, inputValueFetchedUser, setSingleUser, setParticipants, isGroupChat }) => {
+  
   const selectedUser = (user)=> {
-    if(user){
-      setUser((prev)=> [...prev, user])
+    if(isGroupChat){
+      setParticipants((prev)=> {
+        const existParticipant = prev.some((prevUser)=> prevUser?._id === user?._id);
+        if(!existParticipant){
+          return [...prev, user]
+        }
+        return prev;
+      })
+    }else{
+      setSingleUser(user)
     }
     inputValueFetchedUser(user.username);
-    
-    // dispatch(userList(user));
-    // console.log(store.getState().message.userLists); // this is for checking the MessageSlice userLists array.
   };
 
   return (

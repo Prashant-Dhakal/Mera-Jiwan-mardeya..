@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import TextField from "@mui/material/TextField";
 import SearchResult from "./SearchResult";
 import CloseIcon from "@mui/icons-material/Close";
@@ -12,10 +12,11 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
   const [groupName, setGroupName] = useState("");
   const [input, setInput] = useState("");
   const [resultedUser, setResultedUser] = useState([]);
-  const [user, setUser] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [SingleUser, setSingleUser] = useState();
 
   const dispatch = useDispatch();
-
+  
   const handleChatTypeChange = (e) => {
     setIsGroupChat(e.target.checked);
     clearInput();
@@ -29,6 +30,19 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
     setInput(value);
     fetchData(value);    
   };
+
+  const handleOnClose = () =>{
+    clearInput();
+    setParticipants([]);
+    setGroupName("")
+    setResultedUser([]);
+    setSingleUser();
+    setIsGroupChat(false);
+
+    if(onClose){
+      onClose();
+    }
+  }
 
   const clearInput = () => {
     setInput("");
@@ -51,7 +65,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
     if (isGroupChat) {
       const groupChat = {
         isGroupChat: true,
-        users: user,
+        users: participants,
         chatName: groupName,
       };
 
@@ -59,39 +73,41 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
         const createGroupChats = await createChat(groupChat);
         if (createGroupChats) {
           dispatch(userList(createGroupChats.data));
-          setUser([]);
+          setParticipants([]);
+          setGroupName("")
+          setResultedUser([]);
         }
       } catch (error) {
         console.error("Error creating chat:", error);
       }
     } else {
-      const extractObjectFromArray = user.length === 1 ? user[0] : user;
 
       const OneonOneChat = {
         isGroupChat: false,
-        users: extractObjectFromArray?._id,
+        users: SingleUser,
       };
 
       try {
         const createChats = await createChat(OneonOneChat);
         if (createChats) {
-          onNewChat();
-          setUser([])
           dispatch(userList(createChats.data));
+          onNewChat();
+          setResultedUser([])
+          setSingleUser([])
         }
       } catch (error) {
         console.error("Error creating chat:", error);
       }
     }
-    clearInput();
     onClose();
+    clearInput();
   };
 
   const handleParticipants = (participantId) => {
-    const updatedUser = user.filter(
+    const updatedUser = participants.filter(
       (participant) => participant._id !== participantId
     );
-    setUser(updatedUser);
+    setParticipants(updatedUser);
   };
 
   return isOpen ? (
@@ -136,7 +152,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
 
             {/* Participants Box */}
             <div className="flex flex-wrap gap-2 mb-4">
-              {user.map((participant) => (
+              {participants.map((participant) => (
                 <Chip
                   key={participant._id}
                   label={participant.username}
@@ -155,9 +171,11 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
             </div>
 
             <SearchResult
+             isGroupChat={isGroupChat}
               users={resultedUser}
               inputValueFetchedUser={setInput}
-              setUser={setUser}
+              setSingleUser={setSingleUser}
+              setParticipants={setParticipants}
             />
           </>
         ) : (
@@ -174,7 +192,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
             <SearchResult
               users={resultedUser}
               inputValueFetchedUser={setInput}
-              setUser={setUser}
+              setSingleUser={setSingleUser}
             />
           </>
         )}
@@ -182,10 +200,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
         <div className="flex justify-end gap-4 mt-6">
           <button
             className="px-6 py-2 text-gray-500 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-300"
-            onClick={() => {
-              clearInput();
-              onClose();
-            }}
+            onClick={handleOnClose}
           >
             Cancel
           </button>
