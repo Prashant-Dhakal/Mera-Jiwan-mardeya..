@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TextField from "@mui/material/TextField";
 import SearchResult from "./SearchResult";
 import CloseIcon from "@mui/icons-material/Close";
@@ -14,8 +14,23 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
   const [resultedUser, setResultedUser] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [SingleUser, setSingleUser] = useState();
+  const [debouncedInput, setDebouncedInput] = useState("")
 
   const dispatch = useDispatch();
+
+  useEffect(() => {
+
+    const timeout = setTimeout(() => {
+      setDebouncedInput(input)
+    }, 800);
+
+    return () => clearTimeout(timeout) 
+  }, [input]);
+
+  useEffect(()=>{
+    fetchData(debouncedInput)
+  },[debouncedInput])
+  
   
   const handleChatTypeChange = (e) => {
     setIsGroupChat(e.target.checked);
@@ -27,8 +42,7 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
   };
 
   const handleChange = (value) => {
-    setInput(value);
-    fetchData(value);    
+    setInput(value);  
   };
 
   const handleOnClose = () =>{
@@ -54,6 +68,8 @@ const ChatModal = ({ isOpen, onClose, onNewChat }) => {
     try {
       const searchUser = await searchUsers(username);
       if (searchUser) {
+        console.log(searchUser);
+        
         setResultedUser(searchUser.data);
       }
     } catch (error) {
